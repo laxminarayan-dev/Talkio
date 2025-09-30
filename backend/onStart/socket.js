@@ -1,9 +1,12 @@
 const { Server } = require("socket.io");
+const dotenv = require('dotenv');
+dotenv.config();
+
 const start_socket_server = (server, cache) => {
     const Message = require("../models/Message")
     const io = new Server(server, {
         cors: {
-            origin: "http://192.168.29.98:5173", // your React app URL
+            origin: process.env.SOCKET_FRONTEND, // your React app URL
             methods: ["GET", "POST"],
         },
         pingInterval: 3000, // 10 seconds
