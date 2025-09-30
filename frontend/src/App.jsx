@@ -27,6 +27,7 @@ const App = () => {
   }
   return (
     <Routes>
+      {isloggedIn ? "yes login" : "no login"}
       {isloggedIn ? (
         <>
           <Route path="/" element={<Root />}>
