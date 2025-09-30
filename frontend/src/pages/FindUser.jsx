@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { FaUserAlt } from "react-icons/fa";
+const backend_url = import.meta.env.BACKEND_URL;
 
 const FindUser = () => {
   const [query, setQuery] = useState(""); // search input
@@ -14,7 +15,7 @@ const FindUser = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://192.168.29.98:8000/api/user/find?q=${searchTerm}`
+        `${backend_url}/api/user/find?q=${searchTerm}`
       );
       setResults(response.data.results); // Adjust according to your API response
     } catch (err) {

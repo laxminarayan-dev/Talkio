@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import { IoCheckmarkDone } from "react-icons/io5";
 import socket from "../store/socket";
 import { ChatContext } from "../store/ChatContext";
-
+const backend_url = import.meta.env.BACKEND_URL;
 const getTime = (utcTime) => {
   const localDate = new Date(utcTime);
 
@@ -37,12 +37,9 @@ const ChatSection = () => {
   const fetchUserDetail = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(
-        "http://192.168.29.98:8000/api/user/userDetail",
-        {
-          userId,
-        }
-      );
+      const res = await axios.post(`${backend_url}/api/user/userDetail`, {
+        userId,
+      });
       const user = res.data.result;
       setReceiver({
         _id: user._id,
@@ -119,18 +116,15 @@ const ChatSection = () => {
     if (newMessage.trim() === "") return;
 
     try {
-      const res = await axios.post(
-        "http://192.168.29.98:8000/api/messages/add",
-        {
-          sender: Cookies.get("token"),
-          senderName: Cookies.get("name"),
-          senderUsername: Cookies.get("username"),
-          receiver: userId,
-          receiverName: receiver.name,
-          receiverUsername: receiver.username,
-          content: newMessage,
-        }
-      );
+      const res = await axios.post(`${backend_url}/api/messages/add`, {
+        sender: Cookies.get("token"),
+        senderName: Cookies.get("name"),
+        senderUsername: Cookies.get("username"),
+        receiver: userId,
+        receiverName: receiver.name,
+        receiverUsername: receiver.username,
+        content: newMessage,
+      });
       setMessages([...messages, res.data]);
       socket.emit("send-message", {
         to: userId,

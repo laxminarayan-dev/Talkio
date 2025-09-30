@@ -1,7 +1,8 @@
 // socket.js
 import Cookies from "js-cookie"
 import { io } from "socket.io-client";
-const socket = io("http://192.168.29.98:8000", {
+const backend_url = import.meta.env.BACKEND_URL
+const socket = io(backend_url, {
     auth: {
         userId: Cookies.get("token"),
         username: Cookies.get("username")

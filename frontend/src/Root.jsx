@@ -12,6 +12,7 @@ import { IoClose } from "react-icons/io5";
 import socket from "./store/socket";
 import axios from "axios";
 import { ChatProvider, ChatContext } from "./store/ChatContext";
+const backend_url = import.meta.env.BACKEND_URL;
 
 // get time from utc time string
 const getTime = (utcTime) => {
@@ -63,7 +64,7 @@ const Root = () => {
   const fetchConvData = async () => {
     try {
       const res = await axios.post(
-        "http://192.168.29.98:8000/api/messages/allConversation",
+        `${backend_url}/api/messages/allConversation`,
         {
           userId: Cookies.get("token"),
         }

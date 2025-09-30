@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
-
+const backend_url = import.meta.env.BACKEND_URL;
 export default function Signup() {
   const [isloggedIn, setIsLoggedIn] = useState(null);
   const navigate = useNavigate();
@@ -81,14 +81,11 @@ export default function Signup() {
       console.log(formData);
 
       // Simulate API call
-      const res = await axios.post(
-        "http://192.168.29.98:8000/api/auth/register",
-        {
-          username: formData.username,
-          name: formData.name,
-          password: formData.password,
-        }
-      );
+      const res = await axios.post(`${backend_url}/api/auth/register`, {
+        username: formData.username,
+        name: formData.name,
+        password: formData.password,
+      });
       if (res.status == 200) {
         Cookies.set("token", res.data.token, { expires: 7 }); // expires in 7 days
         Cookies.set("username", res.data.username, { expires: 7 }); // expires in 7 days
