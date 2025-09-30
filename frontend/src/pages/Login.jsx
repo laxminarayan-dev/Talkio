@@ -29,6 +29,8 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("backend_url", backend_url);
+
     if (validate()) {
       try {
         const res = await axios.post(`${backend_url}/api/auth/login`, {
