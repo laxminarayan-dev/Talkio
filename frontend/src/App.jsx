@@ -27,13 +27,24 @@ const App = () => {
   }
   return (
     <Routes>
-      <Route path="/" element={<Root />}>
-        <Route index element={<Home />} />
-        <Route path="chat/:userId" element={<ChatSection />} />
-      </Route>
-      <Route path="find-user" element={<FindUser />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Signup />} />
+      {isloggedIn ? (
+        <>
+          <Route path="/" element={<Root />}>
+            <Route index element={<Home />} />
+            <Route path="chat/:userId" element={<ChatSection />} />
+          </Route>
+          <Route path="find-user" element={<FindUser />} />
+        </>
+      ) : (
+        <>
+          {/* Redirect any unknown path to /login */}
+          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Signup />} />
+        </>
+      )}
+
+      {/* Fallback for unexpected errors */}
       <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
