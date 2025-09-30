@@ -81,6 +81,12 @@ const Root = () => {
     setIsLoggedIn(!!token);
   }, []);
 
+  useEffect(() => {
+    if (isloggedIn) {
+      socket.connect();
+    }
+  }, [isloggedIn]);
+
   // sidebar handling
   useEffect(() => {
     setChatOpen(null);

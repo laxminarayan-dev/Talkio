@@ -7,7 +7,7 @@ const socket = io(backend_url, {
         userId: Cookies.get("token"),
         username: Cookies.get("username")
     },
-    autoConnect: true
+    autoConnect: false
 });
 
 export default socket;

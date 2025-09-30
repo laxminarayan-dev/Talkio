@@ -3,7 +3,9 @@ import Cookies from "js-cookie";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
+// import socket from "../store/socket";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
+
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

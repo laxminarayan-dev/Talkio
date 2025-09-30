@@ -1,5 +1,5 @@
 import Cookies from "js-cookie";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Root from "./Root";
 import Loading from "./components/Loading";
@@ -27,25 +27,13 @@ const App = () => {
   }
   return (
     <Routes>
-      {isloggedIn ? "yes login" : "no login"}
-      {isloggedIn ? (
-        <>
-          <Route path="/" element={<Root />}>
-            <Route index element={<Home />} />
-            <Route path="chat/:userId" element={<ChatSection />} />
-          </Route>
-          <Route path="find-user" element={<FindUser />} />
-        </>
-      ) : (
-        <>
-          {/* Redirect any unknown path to /login */}
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Signup />} />
-        </>
-      )}
-
-      {/* Fallback for unexpected errors */}
+      <Route path="/" element={<Root />}>
+        <Route index element={<Home />} />
+        <Route path="chat/:userId" element={<ChatSection />} />
+      </Route>
+      <Route path="find-user" element={<FindUser />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Signup />} />
       <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
