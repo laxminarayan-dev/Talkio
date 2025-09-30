@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { FaUserAlt } from "react-icons/fa";
-const backend_url = import.meta.env.BACKEND_URL;
+const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 const FindUser = () => {
   const [query, setQuery] = useState(""); // search input

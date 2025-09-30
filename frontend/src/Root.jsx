@@ -12,7 +12,7 @@ import { IoClose } from "react-icons/io5";
 import socket from "./store/socket";
 import axios from "axios";
 import { ChatProvider, ChatContext } from "./store/ChatContext";
-const backend_url = import.meta.env.BACKEND_URL;
+const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 // get time from utc time string
 const getTime = (utcTime) => {

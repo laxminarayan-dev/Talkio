@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import { IoCheckmarkDone } from "react-icons/io5";
 import socket from "../store/socket";
 import { ChatContext } from "../store/ChatContext";
-const backend_url = import.meta.env.BACKEND_URL;
+const backend_url = import.meta.env.VITE_BACKEND_URL;
 const getTime = (utcTime) => {
   const localDate = new Date(utcTime);
 
