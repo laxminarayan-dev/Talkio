@@ -29,3 +29,5 @@ Thumbs.db
 
 # Optional: coverage reports
 coverage/
+
+#.gitignore
