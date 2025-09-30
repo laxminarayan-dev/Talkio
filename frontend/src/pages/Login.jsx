@@ -42,7 +42,7 @@ export default function Login() {
           navigate("/");
         }
       } catch (error) {
-        console.error("Error:", error.response.data.message);
+        console.error("Error:", error);
       }
     }
   };
