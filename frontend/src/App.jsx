@@ -1,5 +1,5 @@
 import Cookies from "js-cookie";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Root from "./Root";
 import Loading from "./components/Loading";
