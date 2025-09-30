@@ -83,6 +83,11 @@ const Root = () => {
 
   useEffect(() => {
     if (isloggedIn) {
+      const token = Cookies.get("token");
+      const username = Cookies.get("username");
+
+      socket.auth = { userId: token, username };
+      console.log("✅ Connecting socket...");
       socket.connect();
     }
   }, [isloggedIn]);

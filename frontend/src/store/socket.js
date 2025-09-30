@@ -1,13 +1,11 @@
 // socket.js
-import Cookies from "js-cookie"
 import { io } from "socket.io-client";
-const backend_url = import.meta.env.VITE_BACKEND_URL
+
+const backend_url = import.meta.env.VITE_BACKEND_URL;
+
 const socket = io(backend_url, {
-    auth: {
-        userId: Cookies.get("token"),
-        username: Cookies.get("username")
-    },
-    autoConnect: false
+    autoConnect: false,
+    transports: ["websocket"], // helps prevent polling issues on Render
 });
 
 export default socket;
