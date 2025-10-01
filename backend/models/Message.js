@@ -55,6 +55,16 @@ const messageSchema = new mongoose.Schema(
             enum: ["text", "image", "file"],
             default: "text",
         },
+        // ✅ New Fields for Reply Feature
+        replyMessage: {
+            type: String,
+            default: null, // The text/content being replied to
+        },
+        replyMessageSender: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null, // Sender ID of the original message
+        },
     },
     { timestamps: true }
 );

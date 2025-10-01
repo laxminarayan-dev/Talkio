@@ -28,6 +28,8 @@ route.post("/add", async (req, res) => {
             senderUsername,
             receiverName,
             receiverUsername,
+            replyMessage,
+            replyMessageSender,
             content } = req.body;
         if (!sender || !receiver || !content) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -49,8 +51,11 @@ route.post("/add", async (req, res) => {
             receiverName,
             receiverUsername,
             content,
+            replyMessage: replyMessage,
+            replyMessageSender: replyMessageSender,
             type: "text",
         });
+        console.log(message);
 
         const savedMessage = await message.save();
 
@@ -61,6 +66,8 @@ route.post("/add", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 })
+
+
 route.post("/lastConversation", async (req, res) => {
     const { userId } = req.body;
     const messages = await Message.aggregate([

@@ -1,11 +1,13 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useState, useRef, useEffect, useMemo, useContext } from "react";
-import { LuMessageSquareText } from "react-icons/lu";
+import { LuCross, LuMessageSquareText } from "react-icons/lu";
 import { useParams } from "react-router-dom";
-import { IoCheckmarkDone } from "react-icons/io5";
+import { IoCheckmarkDone, IoClose } from "react-icons/io5";
 import socket from "../store/socket";
 import { ChatContext } from "../store/ChatContext";
+import { useSwipeable } from "react-swipeable";
+import { isMobile, isTablet, isDesktop } from "react-device-detect";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 const getTime = (utcTime) => {
   const localDate = new Date(utcTime);
@@ -33,6 +35,16 @@ const ChatSection = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
+  const [replyMessage, setReplyMessage] = useState(null);
+  const [heightOfMessageList, setHeightOfMessageList] = useState(null);
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const isRealDesktop = isDesktop && !isTouchDevice;
+  useEffect(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, [replyMessage]);
 
   const fetchUserDetail = async () => {
     setLoading(true);
@@ -116,6 +128,8 @@ const ChatSection = () => {
     if (newMessage.trim() === "") return;
 
     try {
+      console.log(replyMessage);
+
       const res = await axios.post(`${backend_url}/api/messages/add`, {
         sender: Cookies.get("token"),
         senderName: Cookies.get("name"),
@@ -124,7 +138,10 @@ const ChatSection = () => {
         receiverName: receiver.name,
         receiverUsername: receiver.username,
         content: newMessage,
+        replyMessage: replyMessage?.content || null,
+        replyMessageSender: replyMessage?.sender || null,
       });
+      setReplyMessage(null);
       setMessages([...messages, res.data]);
       socket.emit("send-message", {
         to: userId,
@@ -134,15 +151,23 @@ const ChatSection = () => {
         fromStatus: true,
       });
     } catch (error) {
-      console.error(error.response.data.error);
+      console.error(error);
     }
     setNewMessage("");
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-gray-100">
+    <div
+      className="md:w-[calc(100vw-24rem)] md:left-96 fixed inset-0 flex flex-col bg-gray-200 bottom-0 overflow-y-"
+      style={{
+        backgroundImage: `url('/chat-bg-4.png')`,
+        backgroundSize: "contain",
+        backgroundRepeat: "repeat",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Chat Header */}
-      <div className="sticky w-full h-18 top-0 bg-gray-100 p-4 border-b border-gray-400 flex items-center">
+      <div className="flex-shrink-0 w-full h-18 top-0 bg-gray-100 p-4 border-b border-gray-400 flex items-center z-10">
         <div className="relative">
           <div
             className={`w-10 h-10 rounded-full ${
@@ -184,13 +209,7 @@ const ChatSection = () => {
       </div>
       {/* Messages Container */}
       <div
-        className="bg-indigo-50 h-[calc(100vh-4.5rem)] flex flex-col-reverse pt-4 pb-18 overflow-y-scroll px-4"
-        style={{
-          backgroundImage: `url('/chat-bg-4.png')`,
-          backgroundSize: "contain",
-          backgroundRepeat: "repeat",
-          backgroundPosition: "center",
-        }}
+        className={`flex-1 flex flex-col-reverse pt-4 pb-4 overflow-y-scroll px-4 overflow-x-hidden z-0`}
       >
         {sortedMessages.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center pt-16 px-6 text-center text-gray-500">
@@ -203,53 +222,62 @@ const ChatSection = () => {
           //
         )}
         {!loading &&
-          sortedMessages.map((message, index) => (
-            <div
+          sortedMessages.map((message, index, messagesEndRef) => (
+            <MessageBubble
               key={index}
-              ref={index === 0 ? messagesEndRef : null} // ✅ Anchor on first (bottom-most) message
-              className={` flex align-bottom mb-2 ${
-                message.sender === Cookies.get("token")
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-              onL
-            >
-              <div
-                className={`min-w-28 max-w-xs md:max-w-md px-3 py-1 rounded-lg ${
-                  message.sender === Cookies.get("token")
-                    ? "bg-white  text-black rounded-br-none shadow-xl"
-                    : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
-                }`}
-              >
-                <p>{message.content}</p>
-                <div
-                  className={`text-[10px] flex items-center ${
-                    message.sender === Cookies.get("token")
-                      ? "text-black text-right justify-end gap-2"
-                      : "text-gray-200"
-                  }`}
-                >
-                  {getTime(message.createdAt)}
-                  <p>
-                    {message.sender == Cookies.get("token") && (
-                      <>
-                        {message.isSeen ? (
-                          <IoCheckmarkDone size={16} color="#4263ff" />
-                        ) : (
-                          <IoCheckmarkDone size={16} />
-                        )}
-                      </>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
+              message={message}
+              ref={index === 0 ? messagesEndRef : null}
+              setReplyMessage={setReplyMessage}
+              replyMessage={replyMessage}
+            />
           ))}
       </div>
 
+      {/* reply div */}
+      {replyMessage != null && (
+        <div className="flex-shrink-0 flex mt-2 pl-6 pr-15 min-h-fit w-full justify-center md:w-[calc(100vw-24rem)]">
+          <div
+            className={`bg-gray-900 p-2 border-l-6 rounded-xl flex-1 place-items-start ${
+              replyMessage.sender === Cookies.get("token")
+                ? "border-red-400"
+                : "border-blue-400"
+            }  flex items-start space-x-2 max-w-[calc(100vw-5rem)] md:max-w-[calc(100vw-29rem)]`}
+          >
+            <div className="flex-grow min-h-fit p-1  truncate text-white">
+              <span
+                className={`${
+                  replyMessage.sender === Cookies.get("token")
+                    ? "text-red-500"
+                    : "text-blue-500"
+                } font-bold`}
+              >
+                {replyMessage.sender === Cookies.get("token")
+                  ? "You"
+                  : replyMessage.senderName}
+              </span>
+              <br />
+              <span className="text-wrap text-sm text-gray-200">
+                {replyMessage.content}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setReplyMessage(null);
+              }}
+              className="text-gray-400 hover:text-gray-100 font-bold "
+              aria-label="Cancel Reply"
+            >
+              <IoClose size={20} />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Message Input */}
-      <div className="fixed flex items-center bottom-0 w-full md:w-[calc(100vw-24rem)] h-16 bg-white/20 backdrop-blur-xs p-4 border-t border-gray-200">
-        <form onSubmit={handleSendMessage} className="flex flex-1 items-center">
+      <div className="flex-shrink-0 flex flex-col px-4  bottom-0 w-full md:w-[calc(100vw-24rem)] h-16 ">
+        <form
+          onSubmit={handleSendMessage}
+          className="flex flex-1 items-center h-[inherit] "
+        >
           <input
             type="text"
             value={newMessage}
@@ -283,3 +311,99 @@ const ChatSection = () => {
 };
 
 export default ChatSection;
+
+const MessageBubble = ({ message, replyMessage, setReplyMessage }) => {
+  const [isSwipedRight, setIsSwipedRight] = useState(false);
+  const [isSwipedLeft, setIsSwipedLeft] = useState(false);
+
+  const swipeHandler = useSwipeable(
+    message["sender"] === Cookies.get("token")
+      ? {
+          onSwipedLeft: () => {
+            setIsSwipedLeft(true);
+            setReplyMessage(message);
+            setTimeout(() => {
+              setIsSwipedLeft(false);
+            }, 200);
+          },
+        }
+      : {
+          onSwipedRight: () => {
+            setIsSwipedRight(true);
+            setReplyMessage(message);
+            setTimeout(() => {
+              setIsSwipedRight(false);
+            }, 200);
+          },
+        }
+  );
+
+  return (
+    <div
+      {...swipeHandler}
+      className={`flex  align-bottom mb-2 ${
+        message.sender === Cookies.get("token")
+          ? "justify-end"
+          : "justify-start"
+      } transition-transform duration-300 ease-in-out 
+      ${isSwipedLeft ? "translate-x-[-3rem]" : "translate-x-0"}
+      ${isSwipedRight ? "translate-x-12" : "translate-x-0"}`}
+    >
+      <div
+        className={`flex flex-col justify-end gap-2  max-w-sm md:max-w-md p-1 rounded-xl ${
+          message.sender === Cookies.get("token")
+            ? "bg-white  text-black rounded-br-none shadow-xl"
+            : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
+        }`}
+      >
+        {message.replyMessage && (
+          <div
+            className={`${
+              message.sender === Cookies.get("token")
+                ? " rounded-br-none"
+                : " rounded-bl-none"
+            } ${
+              message.replyMessageSender === Cookies.get("token")
+                ? "border-red-400"
+                : "border-blue-400"
+            } border-l-5 p-2 rounded-lg w-full bg-stone-200 text-gray-900`}
+          >
+            <p className="font-bold text-sm">
+              {message.replyMessageSender === Cookies.get("token")
+                ? "You"
+                : message.receiverName}
+            </p>
+            <p className="text-xs">{message.replyMessage}</p>
+          </div>
+        )}
+        <div
+          className={`flex items-end gap-2 w-full px-2 ${
+            message.sender === Cookies.get("token") && "justify-end"
+          }`}
+        >
+          <p>{message.content}</p>
+          <div
+            className={`text-[10px] flex items-center ${
+              message.sender === Cookies.get("token")
+                ? "text-black text-right justify-end gap-2"
+                : "text-gray-200 "
+            }`}
+          >
+            {getTime(message.createdAt)}
+            <p>
+              {message.sender == Cookies.get("token") && (
+                <>
+                  {message.isSeen ? (
+                    <IoCheckmarkDone size={16} color="#4263ff" />
+                  ) : (
+                    <IoCheckmarkDone size={16} />
+                  )}
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
