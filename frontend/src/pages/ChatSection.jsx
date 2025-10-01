@@ -389,7 +389,7 @@ const MessageBubble = ({ message, replyMessage, setReplyMessage }) => {
                 : "text-gray-200 "
             }`}
           >
-            {getTime(message.createdAt)}
+            <p className="min-w-fit"> {getTime(message.createdAt)}</p>
             <p>
               {message.sender == Cookies.get("token") && (
                 <>
