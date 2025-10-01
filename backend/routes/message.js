@@ -55,10 +55,7 @@ route.post("/add", async (req, res) => {
             replyMessageSender: replyMessageSender,
             type: "text",
         });
-        console.log(message);
-
         const savedMessage = await message.save();
-
         res.status(201).json(savedMessage);
     }
     catch (err) {

@@ -1,6 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useState, useRef, useEffect, useMemo, useContext } from "react";
+import React, { useState, useRef, useEffect, useMemo, useContext } from "react";
 import { LuCross, LuMessageSquareText } from "react-icons/lu";
 import { useParams } from "react-router-dom";
 import { IoCheckmarkDone, IoClose } from "react-icons/io5";
@@ -22,6 +22,40 @@ const getTime = (utcTime) => {
 
   return `${hours}:${minutes} ${ampm}`;
 };
+
+// ✅ NEW: Helper function to get date label
+const getDateLabel = (messageDate) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const msgDate = new Date(messageDate);
+
+  // Reset time to compare only dates
+  today.setHours(0, 0, 0, 0);
+  yesterday.setHours(0, 0, 0, 0);
+  msgDate.setHours(0, 0, 0, 0);
+
+  if (msgDate.getTime() === today.getTime()) {
+    return "Today";
+  } else if (msgDate.getTime() === yesterday.getTime()) {
+    return "Yesterday";
+  } else {
+    const day = msgDate.getDate().toString().padStart(2, "0");
+    const month = (msgDate.getMonth() + 1).toString().padStart(2, "0");
+    const year = msgDate.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+};
+const isSameDay = (date1, date2) => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
 const ChatSection = () => {
   const { conversations, setConversations } = useContext(ChatContext);
   const [loading, setLoading] = useState(false);
@@ -36,10 +70,13 @@ const ChatSection = () => {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
   const [replyMessage, setReplyMessage] = useState(null);
-  const [heightOfMessageList, setHeightOfMessageList] = useState(null);
+  const [sendingMessages, setSendingMessages] = useState([]);
+
   const isTouchDevice =
     "ontouchstart" in window || navigator.maxTouchPoints > 0;
   const isRealDesktop = isDesktop && !isTouchDevice;
+  const [sending, setSending] = useState(false);
+
   useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -126,10 +163,21 @@ const ChatSection = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === "") return;
+    setSending(true); // 🚫 disable input & button
+    const tempId = Date.now(); // temporary unique ID
+    const tempMessage = {
+      _id: tempId,
+      sender: Cookies.get("token"),
+      content: newMessage,
+      createdAt: new Date().toISOString(),
+      isTemp: true,
+    };
 
+    // ✅ Instantly add to UI
+    setMessages((prev) => [...prev, tempMessage]);
+    setSendingMessages((prev) => [...prev, tempId]);
+    setNewMessage("");
     try {
-      console.log(replyMessage);
-
       const res = await axios.post(`${backend_url}/api/messages/add`, {
         sender: Cookies.get("token"),
         senderName: Cookies.get("name"),
@@ -142,7 +190,12 @@ const ChatSection = () => {
         replyMessageSender: replyMessage?.sender || null,
       });
       setReplyMessage(null);
-      setMessages([...messages, res.data]);
+      setNewMessage("");
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? res.data : msg))
+      );
+      setSendingMessages((prev) => prev.filter((id) => id !== tempId));
+
       socket.emit("send-message", {
         to: userId,
         toStatus: receiver.isOnline,
@@ -151,9 +204,12 @@ const ChatSection = () => {
         fromStatus: true,
       });
     } catch (error) {
-      console.error(error);
+      console.error(error.response.data);
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? { ...msg, error: true } : msg))
+      );
     }
-    setNewMessage("");
+    setSending(false);
   };
 
   return (
@@ -222,15 +278,32 @@ const ChatSection = () => {
           //
         )}
         {!loading &&
-          sortedMessages.map((message, index, messagesEndRef) => (
-            <MessageBubble
-              key={index}
-              message={message}
-              ref={index === 0 ? messagesEndRef : null}
-              setReplyMessage={setReplyMessage}
-              replyMessage={replyMessage}
-            />
-          ))}
+          sortedMessages.map((message, index, messagesEndRef) => {
+            const showDateMarker =
+              index === sortedMessages.length - 1 ||
+              !isSameDay(
+                message.createdAt,
+                sortedMessages[index + 1].createdAt
+              );
+
+            return (
+              <div key={index}>
+                {showDateMarker && (
+                  <div className="flex justify-center my-4">
+                    <div className="bg-gray-700 text-white text-xs px-3 py-1 rounded-full shadow">
+                      {getDateLabel(message.createdAt)}
+                    </div>
+                  </div>
+                )}
+                <MessageBubble
+                  message={message}
+                  ref={index === 0 ? messagesEndRef : null}
+                  setReplyMessage={setReplyMessage}
+                  sendingMessages={sendingMessages}
+                />
+              </div>
+            );
+          })}
       </div>
 
       {/* reply div */}
@@ -272,6 +345,7 @@ const ChatSection = () => {
           </div>
         </div>
       )}
+
       {/* Message Input */}
       <div className="flex-shrink-0 flex flex-col px-4  bottom-0 w-full md:w-[calc(100vw-24rem)] h-16 ">
         <form
@@ -283,12 +357,13 @@ const ChatSection = () => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message"
+            disabled={sending} // 🚫 disable while sending
             className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-gray-100 border-2 border-gray-200 mx-2 shadow"
           />
 
           <button
             type="submit"
-            disabled={!newMessage.trim()}
+            disabled={sending || !newMessage.trim()}
             className={`p-2 rounded-full shadow ${
               newMessage.trim()
                 ? "bg-indigo-500 hover:bg-indigo-600"
@@ -312,98 +387,97 @@ const ChatSection = () => {
 
 export default ChatSection;
 
-const MessageBubble = ({ message, replyMessage, setReplyMessage }) => {
-  const [isSwipedRight, setIsSwipedRight] = useState(false);
-  const [isSwipedLeft, setIsSwipedLeft] = useState(false);
+const MessageBubble = React.memo(
+  ({ message, sendingMessages, setReplyMessage }) => {
+    const [isSwipedRight, setIsSwipedRight] = useState(false);
+    const [isSwipedLeft, setIsSwipedLeft] = useState(false);
 
-  const swipeHandler = useSwipeable(
-    message["sender"] === Cookies.get("token")
-      ? {
-          onSwipedLeft: () => {
-            setIsSwipedLeft(true);
-            setReplyMessage(message);
-            setTimeout(() => {
-              setIsSwipedLeft(false);
-            }, 200);
-          },
-        }
-      : {
-          onSwipedRight: () => {
-            setIsSwipedRight(true);
-            setReplyMessage(message);
-            setTimeout(() => {
-              setIsSwipedRight(false);
-            }, 200);
-          },
-        }
-  );
+    const swipeHandler = useSwipeable(
+      message["sender"] === Cookies.get("token")
+        ? {
+            onSwipedLeft: () => {
+              setIsSwipedLeft(true);
+              setReplyMessage(message);
+              setTimeout(() => {
+                setIsSwipedLeft(false);
+              }, 200);
+            },
+          }
+        : {
+            onSwipedRight: () => {
+              setIsSwipedRight(true);
+              setReplyMessage(message);
+              setTimeout(() => {
+                setIsSwipedRight(false);
+              }, 200);
+            },
+          }
+    );
 
-  return (
-    <div
-      {...swipeHandler}
-      className={`flex  align-bottom mb-2 ${
-        message.sender === Cookies.get("token")
-          ? "justify-end"
-          : "justify-start"
-      } transition-transform duration-300 ease-in-out 
+    return (
+      <div
+        {...swipeHandler}
+        className={`flex  align-bottom mb-2 ${
+          message.sender === Cookies.get("token")
+            ? "justify-end"
+            : "justify-start"
+        } transition-transform duration-300 ease-in-out 
       ${isSwipedLeft ? "translate-x-[-3rem]" : "translate-x-0"}
       ${isSwipedRight ? "translate-x-12" : "translate-x-0"}`}
-    >
-      <div
-        className={`flex flex-col justify-end gap-2  max-w-sm md:max-w-md p-1 rounded-xl ${
-          message.sender === Cookies.get("token")
-            ? "bg-white  text-black rounded-br-none shadow-xl"
-            : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
-        }`}
       >
-        {message.replyMessage && (
-          <div
-            className={`${
-              message.sender === Cookies.get("token")
-                ? " rounded-br-none"
-                : " rounded-bl-none"
-            } ${
-              message.replyMessageSender === Cookies.get("token")
-                ? "border-red-400"
-                : "border-blue-400"
-            } border-l-5 p-2 rounded-lg w-full bg-stone-200 text-gray-900`}
-          >
-            <p className="font-bold text-sm">
-              {message.replyMessageSender === Cookies.get("token")
-                ? "You"
-                : message.receiverName}
-            </p>
-            <p className="text-xs">{message.replyMessage}</p>
-          </div>
-        )}
         <div
-          className={`flex items-end gap-2 w-full px-2 ${
-            message.sender === Cookies.get("token") && "justify-end"
+          className={`flex flex-col justify-end gap-2  max-w-sm md:max-w-md p-1 rounded-xl ${
+            message.sender === Cookies.get("token")
+              ? "bg-white  text-black rounded-br-none shadow-xl"
+              : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
           }`}
         >
-          <p>{message.content}</p>
+          {message.replyMessage && (
+            <div
+              className={`${
+                message.sender === Cookies.get("token")
+                  ? " rounded-br-none"
+                  : " rounded-bl-none"
+              } ${
+                message.replyMessageSender === Cookies.get("token")
+                  ? "border-red-400"
+                  : "border-blue-400"
+              } border-l-5 p-2 rounded-lg w-full bg-stone-200 text-gray-900`}
+            >
+              <p className="font-bold text-sm">
+                {message.replyMessageSender === Cookies.get("token")
+                  ? "You"
+                  : message.senderName}
+              </p>
+              <p className="text-xs">{message.replyMessage}</p>
+            </div>
+          )}
           <div
-            className={`text-[10px] flex items-center ${
-              message.sender === Cookies.get("token")
-                ? "text-black text-right justify-end gap-2"
-                : "text-gray-200 "
+            className={`flex items-end gap-2 w-full px-2 ${
+              message.sender === Cookies.get("token") && "justify-end"
             }`}
           >
-            <p className="min-w-fit"> {getTime(message.createdAt)}</p>
-            <p>
-              {message.sender == Cookies.get("token") && (
+            <p>{message.content}</p>
+            <div className="text-[10px] flex items-center">
+              {sendingMessages.includes(message._id) ? (
+                message?.error ? (
+                  <span className="text-red-500 text-[10px]">Failed</span>
+                ) : (
+                  <div className="loader w-3 h-3 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
+                )
+              ) : (
                 <>
-                  {message.isSeen ? (
-                    <IoCheckmarkDone size={16} color="#4263ff" />
-                  ) : (
-                    <IoCheckmarkDone size={16} />
-                  )}
+                  <p className="min-w-10">{getTime(message.createdAt)}</p>
+                  <IoCheckmarkDone
+                    size={16}
+                    color={message.isSeen ? "#4263ff" : "#000"}
+                  />
                 </>
               )}
-            </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);

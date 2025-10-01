@@ -361,7 +361,6 @@ const Root = () => {
     );
   }, [searchQuery, sortedConversations]);
 
-  if (chatOpen == null) return <Loading />;
   if (!connection) return <ConnectionLoading />;
   return (
     <div className="flex h-[100dvh]">
