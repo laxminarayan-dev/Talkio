@@ -1,7 +1,6 @@
 import { Link, Outlet, useParams } from "react-router-dom";
 import { useEffect, useState, useMemo, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import Loading from "./components/Loading";
 import ConnectionLoading from "./components/ConnectionLoading";
 import Cookies from "js-cookie";
 import { RiUserSearchLine } from "react-icons/ri";
@@ -10,86 +9,29 @@ import { FiLogOut } from "react-icons/fi";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import socket from "./store/socket";
-import axios from "axios";
-import { ChatProvider, ChatContext } from "./store/ChatContext";
-const backend_url = import.meta.env.VITE_BACKEND_URL;
+import { ChatProvider } from "./store/ChatContext";
 
-// get time from utc time string
-const getTime = (utcTime) => {
-  const localDate = new Date(utcTime);
-
-  let hours = localDate.getHours();
-  const minutes = localDate.getMinutes().toString().padStart(2, "0");
-
-  const ampm = hours >= 12 ? "PM" : "AM";
-
-  hours = hours % 12; // convert to 12-hour format
-  hours = hours ? hours : 12; // hour '0' should be '12'
-
-  return `${hours}:${minutes} ${ampm}`;
-};
-const getDate = (utcTime) => {
-  const localDate = new Date(utcTime);
-
-  // ✅ Date formatting (DD/MM/YYYY or customize)
-  const day = localDate.getDate().toString().padStart(2, "0");
-  const month = (localDate.getMonth() + 1).toString().padStart(2, "0");
-  const year = localDate.getFullYear();
-
-  const date = `${day}/${month}/${year}`; // Change format if needed
-
-  return `${date}`;
-};
+// loading time function from utils
+import { getTime, getDate } from "./utils/time";
+// laoding sorted conversation and from hook
+import { useConversations } from "./hooks/useConversations";
+// creating socket connection
+import { useSocket } from "./hooks/useSocket";
 
 const Root = () => {
-  const { conversations, setConversations } = useContext(ChatContext);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortedConversations, setSortedConversations] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isloggedIn, setIsLoggedIn] = useState(null);
   const [chatOpen, setChatOpen] = useState(null);
-  const [connection, setConnection] = useState(false);
+  const { sortedConversations } = useConversations();
+  const { connection } = useSocket();
   const navigate = useNavigate();
   const param = useParams();
 
-  // sort the convertion
-  useEffect(() => {
-    const sortConvs = [...conversations].sort(
-      (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
-    );
-    setSortedConversations((prev) => sortConvs);
-  }, [conversations]);
-
-  // fetching last conversations
-  const fetchConvData = async () => {
-    try {
-      const res = await axios.post(
-        `${backend_url}/api/messages/allConversation`,
-        {
-          userId: Cookies.get("token"),
-        }
-      );
-      setConversations(res.data);
-    } catch (err) {
-      console.error("Error fetching conversations:", err);
-    }
-  };
-
-  // setIsLoggedIn
+  // check LoggedIn
   useEffect(() => {
     const token = Cookies.get("token");
     setIsLoggedIn(!!token);
-  }, []);
-
-  useEffect(() => {
-    if (isloggedIn) {
-      const token = Cookies.get("token");
-      const username = Cookies.get("username");
-
-      socket.auth = { userId: token, username };
-      console.log("✅ Connecting socket...");
-      socket.connect();
-    }
   }, [isloggedIn]);
 
   // sidebar handling
@@ -103,258 +45,14 @@ const Root = () => {
     }
   }, [param]);
 
-  // socket listners
-  // useEffect(() => {
-  //   let cleanupListeners = null;
-
-  //   const setupListeners = async () => {
-  //     console.log("✅ Socket connected, setting up listeners...");
-  //     setConnection(true);
-  //     fetchConvData();
-
-  //     // When someone comes online
-  //     const handleSomeoneOnline = ({ userId, username }) => {
-  //       console.log(`🔔 ${username} is now online (ID: ${userId})`);
-  //       setConversations((prevConversations) =>
-  //         prevConversations.map((conv) =>
-  //           conv.withUser === userId ? { ...conv, isOnline: true } : conv
-  //         )
-  //       );
-  //     };
-
-  //     // When receiving messages
-  //     const handleReceive = ({ message, toStatus, fromStatus }) => {
-  //       setConversations((prevConversations) => {
-  //         // ✅ Does this conversation already exist?
-  //         const exists = prevConversations.some(
-  //           (conv) =>
-  //             conv.withUser === message.sender ||
-  //             conv.withUser === message.receiver
-  //         );
-
-  //         // ✅ If exists → update that conversation
-  //         if (exists) {
-  //           return prevConversations.map((conv) => {
-  //             if (
-  //               conv.withUser === message.sender ||
-  //               conv.withUser === message.receiver
-  //             ) {
-  //               return {
-  //                 ...conv,
-  //                 messages: [...conv.messages, message],
-  //                 lastMessage: message,
-  //                 lastMessageAt: message.createdAt || new Date().toISOString(),
-  //               };
-  //             }
-  //             return conv;
-  //           });
-  //         }
-
-  //         // ✅ If not exists → create a new conversation
-  //         const newWithUser =
-  //           message.sender === Cookies.get("token")
-  //             ? message.receiver
-  //             : message.sender;
-
-  //         const activeStatus =
-  //           message.sender === Cookies.get("token") ? toStatus : fromStatus;
-
-  //         const newConversation = {
-  //           withUser: newWithUser,
-  //           otherName:
-  //             message.sender === Cookies.get("token")
-  //               ? message.receiverName
-  //               : message.senderName,
-  //           otherUsername:
-  //             message.sender === Cookies.get("token")
-  //               ? message.receiverUsername
-  //               : message.senderUsername,
-  //           messages: [message],
-  //           lastMessage: message,
-  //           lastMessageAt: message.createdAt || new Date().toISOString(),
-  //           isOnline: activeStatus, // default, can be updated separately
-  //         };
-  //         return [newConversation, ...prevConversations];
-  //       });
-  //     };
-
-  //     const handleSomeoneOffline = ({ userId, username }) => {
-  //       console.log(`${userId}:(${username}) is offline `);
-  //       setConversations((prevConversations) =>
-  //         prevConversations.map((conv) =>
-  //           conv.withUser === userId ? { ...conv, isOnline: false } : conv
-  //         )
-  //       );
-  //     };
-
-  //     const handleDisconnect = () => {
-  //       console.log("❌ Disconnected from server");
-  //       setConnection(false);
-  //     };
-  //     socket.on("receive-message", handleReceive);
-  //     socket.on("someone-online", handleSomeoneOnline);
-  //     socket.on("someone-offline", handleSomeoneOffline);
-  //     socket.on("disconnect", handleDisconnect);
-
-  //     // ✅ Clean up
-  //     cleanupListeners = () => {
-  //       socket.off("receive-message", handleReceive);
-  //       socket.off("someone-online", handleSomeoneOnline);
-  //       socket.off("someone-offline", handleSomeoneOffline);
-  //       socket.off("disconnect", handleDisconnect);
-  //     };
-  //   };
-  //   socket.on("connect", setupListeners);
-  //   // ✅ If connected already, set up immediately
-  //   if (socket.connected) {
-  //     setupListeners();
-  //   }
-
-  //   return () => {
-  //     socket.off("connect", setupListeners);
-  //     if (cleanupListeners) cleanupListeners();
-  //   };
-  // }, []);
-
-  // new socket listners
-  useEffect(() => {
-    // When someone comes online
-    const handleSomeoneOnline = ({ userId, username }) => {
-      console.log(`🔔 ${username} is now online (ID: ${userId})`);
-      setConversations((prevConversations) =>
-        prevConversations.map((conv) =>
-          conv.withUser === userId ? { ...conv, isOnline: true } : conv
-        )
-      );
-    };
-
-    // When receiving messages
-    const handleReceive = ({ message, toStatus, fromStatus }) => {
-      setConversations((prevConversations) => {
-        // ✅ Does this conversation already exist?
-        const exists = prevConversations.some(
-          (conv) =>
-            conv.withUser === message.sender ||
-            conv.withUser === message.receiver
-        );
-
-        // ✅ If exists → update that conversation
-        if (exists) {
-          return prevConversations.map((conv) => {
-            if (
-              conv.withUser === message.sender ||
-              conv.withUser === message.receiver
-            ) {
-              return {
-                ...conv,
-                messages: [...conv.messages, message],
-                lastMessage: message,
-                lastMessageAt: message.createdAt || new Date().toISOString(),
-              };
-            }
-            return conv;
-          });
-        }
-
-        // ✅ If not exists → create a new conversation
-        const newWithUser =
-          message.sender === Cookies.get("token")
-            ? message.receiver
-            : message.sender;
-
-        const activeStatus =
-          message.sender === Cookies.get("token") ? toStatus : fromStatus;
-
-        const newConversation = {
-          withUser: newWithUser,
-          otherName:
-            message.sender === Cookies.get("token")
-              ? message.receiverName
-              : message.senderName,
-          otherUsername:
-            message.sender === Cookies.get("token")
-              ? message.receiverUsername
-              : message.senderUsername,
-          messages: [message],
-          lastMessage: message,
-          lastMessageAt: message.createdAt || new Date().toISOString(),
-          isOnline: activeStatus, // default, can be updated separately
-        };
-        return [newConversation, ...prevConversations];
-      });
-    };
-
-    const handleSomeoneOffline = ({ userId, username }) => {
-      console.log(`${userId}:(${username}) is offline `);
-      setConversations((prevConversations) =>
-        prevConversations.map((conv) =>
-          conv.withUser === userId ? { ...conv, isOnline: false } : conv
-        )
-      );
-    };
-
-    const handleDisconnect = () => {
-      console.log("❌ Disconnected from server");
-      setConnection(false);
-    };
-
-    const handleConnect = () => {
-      fetchConvData();
-      console.log("✅ Socket connected");
-      setTimeout(() => {
-        setConnection(true);
-      }, 2000);
-    };
-    const handleMessageSeenAck = ({ receiverId, seenAt }) => {
-      console.log(receiverId, " seen your messages");
-      setConversations((prevConv) => {
-        const updatedConvList = prevConv.map((conv) => {
-          if (conv.withUser === receiverId) {
-            // Update messages in this conversation
-            const updatedMessages = conv.messages.map((message) => {
-              if (message.receiver === receiverId) {
-                return { ...message, isSeen: true, seenAt: seenAt };
-              }
-              return message;
-            });
-            // Return new conv object with updated messages
-            return { ...conv, messages: updatedMessages };
-          }
-          return conv; // keep other conv objects unchanged
-        });
-        console.log(updatedConvList);
-        return updatedConvList;
-      });
-    };
-
-    socket.on("receive-message", handleReceive);
-    socket.on("someone-online", handleSomeoneOnline);
-    socket.on("someone-offline", handleSomeoneOffline);
-    socket.on("disconnect", handleDisconnect);
-    socket.on("connect", handleConnect);
-    socket.on("messagesSeenAck", handleMessageSeenAck);
-
-    // If already connected before this effect runs (e.g. on hot reload)
-    if (socket.connected) {
-      handleConnect();
-    }
-
-    return () => {
-      socket.off("receive-message", handleReceive);
-      socket.off("someone-online", handleSomeoneOnline);
-      socket.off("someone-offline", handleSomeoneOffline);
-      socket.off("disconnect", handleDisconnect);
-      socket.off("connect", handleConnect);
-      socket.off("messagesSeenAck", handleMessageSeenAck);
-    };
-  }, []);
-
+  // if not login redirect to "/login"
   useEffect(() => {
     if (isloggedIn === false) {
       navigate("/login", { replace: true }); // ✅ safe redirect after render
     }
   }, [isloggedIn, navigate]);
 
+  // filtered conversation
   const visibleConversations = useMemo(() => {
     return sortedConversations.filter((conv) =>
       (conv.otherName || "").toLowerCase().includes(searchQuery.toLowerCase())
