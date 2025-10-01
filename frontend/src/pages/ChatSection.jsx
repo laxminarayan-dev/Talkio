@@ -451,7 +451,7 @@ const MessageBubble = React.memo(
               <p className="font-bold text-sm">
                 {message.replyMessageSender === Cookies.get("token")
                   ? "You"
-                  : message.senderName}
+                  : message.otherName}
               </p>
               <p className="text-xs">{message.replyMessage}</p>
             </div>
