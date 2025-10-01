@@ -171,12 +171,16 @@ const ChatSection = () => {
       content: newMessage,
       createdAt: new Date().toISOString(),
       isTemp: true,
+      senderName: Cookies.get("name"),
+      replyMessage: replyMessage?.content || null,
+      replyMessageSender: replyMessage?.sender || null,
     };
 
     // ✅ Instantly add to UI
     setMessages((prev) => [...prev, tempMessage]);
     setSendingMessages((prev) => [...prev, tempId]);
     setNewMessage("");
+    setReplyMessage(null);
     try {
       const res = await axios.post(`${backend_url}/api/messages/add`, {
         sender: Cookies.get("token"),
@@ -186,10 +190,10 @@ const ChatSection = () => {
         receiverName: receiver.name,
         receiverUsername: receiver.username,
         content: newMessage,
-        replyMessage: replyMessage?.content || null,
-        replyMessageSender: replyMessage?.sender || null,
+        replyMessage: tempMessage.replyMessage,
+        replyMessageSender: tempMessage.replyMessageSender,
       });
-      setReplyMessage(null);
+
       setNewMessage("");
       setMessages((prev) =>
         prev.map((msg) => (msg._id === tempId ? res.data : msg))
@@ -426,7 +430,7 @@ const MessageBubble = React.memo(
       ${isSwipedRight ? "translate-x-12" : "translate-x-0"}`}
       >
         <div
-          className={`flex flex-col justify-end gap-2  max-w-sm md:max-w-md p-1 rounded-xl ${
+          className={`flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
             message.sender === Cookies.get("token")
               ? "bg-white  text-black rounded-br-none shadow-xl"
               : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
