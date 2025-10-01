@@ -30,6 +30,7 @@ route.post("/add", async (req, res) => {
             receiverUsername,
             replyMessage,
             replyMessageSender,
+            replyMessageSenderName,
             content } = req.body;
         if (!sender || !receiver || !content) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -53,6 +54,7 @@ route.post("/add", async (req, res) => {
             content,
             replyMessage: replyMessage,
             replyMessageSender: replyMessageSender,
+            replyMessageSenderName: replyMessageSenderName,
             type: "text",
         });
         const savedMessage = await message.save();

@@ -65,6 +65,10 @@ const messageSchema = new mongoose.Schema(
             ref: "User",
             default: null, // Sender ID of the original message
         },
+        replyMessageSenderName: {
+            type: String,  // Full name (optional)
+            default: null
+        },
     },
     { timestamps: true }
 );

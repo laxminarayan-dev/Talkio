@@ -1,61 +1,16 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import React, { useState, useRef, useEffect, useMemo, useContext } from "react";
-import { LuCross, LuMessageSquareText } from "react-icons/lu";
+import { useState, useRef, useEffect, useMemo, useContext } from "react";
+import { LuMessageSquareText } from "react-icons/lu";
 import { useParams } from "react-router-dom";
-import { IoCheckmarkDone, IoClose } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 import socket from "../store/socket";
 import { ChatContext } from "../store/ChatContext";
-import { useSwipeable } from "react-swipeable";
+import MessageBubble from "../components/MessageBubble";
 import { isMobile, isTablet, isDesktop } from "react-device-detect";
+import { getDateLabel, isSameDay } from "../utils/time";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
-const getTime = (utcTime) => {
-  const localDate = new Date(utcTime);
 
-  let hours = localDate.getHours();
-  const minutes = localDate.getMinutes().toString().padStart(2, "0");
-
-  const ampm = hours >= 12 ? "PM" : "AM";
-
-  hours = hours % 12; // convert to 12-hour format
-  hours = hours ? hours : 12; // hour '0' should be '12'
-
-  return `${hours}:${minutes} ${ampm}`;
-};
-
-// ✅ NEW: Helper function to get date label
-const getDateLabel = (messageDate) => {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const msgDate = new Date(messageDate);
-
-  // Reset time to compare only dates
-  today.setHours(0, 0, 0, 0);
-  yesterday.setHours(0, 0, 0, 0);
-  msgDate.setHours(0, 0, 0, 0);
-
-  if (msgDate.getTime() === today.getTime()) {
-    return "Today";
-  } else if (msgDate.getTime() === yesterday.getTime()) {
-    return "Yesterday";
-  } else {
-    const day = msgDate.getDate().toString().padStart(2, "0");
-    const month = (msgDate.getMonth() + 1).toString().padStart(2, "0");
-    const year = msgDate.getFullYear();
-    return `${day}-${month}-${year}`;
-  }
-};
-const isSameDay = (date1, date2) => {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  );
-};
 const ChatSection = () => {
   const { conversations, setConversations } = useContext(ChatContext);
   const [loading, setLoading] = useState(false);
@@ -71,17 +26,11 @@ const ChatSection = () => {
   const messagesEndRef = useRef(null);
   const [replyMessage, setReplyMessage] = useState(null);
   const [sendingMessages, setSendingMessages] = useState([]);
-
-  const isTouchDevice =
-    "ontouchstart" in window || navigator.maxTouchPoints > 0;
-  const isRealDesktop = isDesktop && !isTouchDevice;
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  }, [replyMessage]);
+  // const isTouchDevice =
+  //   "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  // const isRealDesktop = isDesktop && !isTouchDevice;
 
   const fetchUserDetail = async () => {
     setLoading(true);
@@ -152,7 +101,7 @@ const ChatSection = () => {
   useEffect(() => {
     //scrollToBottom
     messagesEndRef.current?.scrollIntoView();
-  }, [messages]);
+  }, [messages, replyMessage]);
 
   const sortedMessages = useMemo(() => {
     return [...messages].sort(
@@ -174,6 +123,7 @@ const ChatSection = () => {
       senderName: Cookies.get("name"),
       replyMessage: replyMessage?.content || null,
       replyMessageSender: replyMessage?.sender || null,
+      replyMessageSenderName: replyMessage?.senderName || null,
     };
 
     // ✅ Instantly add to UI
@@ -192,6 +142,7 @@ const ChatSection = () => {
         content: newMessage,
         replyMessage: tempMessage.replyMessage,
         replyMessageSender: tempMessage.replyMessageSender,
+        replyMessageSenderName: tempMessage.replyMessageSenderName,
       });
 
       setNewMessage("");
@@ -390,98 +341,3 @@ const ChatSection = () => {
 };
 
 export default ChatSection;
-
-const MessageBubble = React.memo(
-  ({ message, sendingMessages, setReplyMessage }) => {
-    const [isSwipedRight, setIsSwipedRight] = useState(false);
-    const [isSwipedLeft, setIsSwipedLeft] = useState(false);
-
-    const swipeHandler = useSwipeable(
-      message["sender"] === Cookies.get("token")
-        ? {
-            onSwipedLeft: () => {
-              setIsSwipedLeft(true);
-              setReplyMessage(message);
-              setTimeout(() => {
-                setIsSwipedLeft(false);
-              }, 200);
-            },
-          }
-        : {
-            onSwipedRight: () => {
-              setIsSwipedRight(true);
-              setReplyMessage(message);
-              setTimeout(() => {
-                setIsSwipedRight(false);
-              }, 200);
-            },
-          }
-    );
-
-    return (
-      <div
-        {...swipeHandler}
-        className={`flex  align-bottom mb-2 ${
-          message.sender === Cookies.get("token")
-            ? "justify-end"
-            : "justify-start"
-        } transition-transform duration-300 ease-in-out 
-      ${isSwipedLeft ? "translate-x-[-3rem]" : "translate-x-0"}
-      ${isSwipedRight ? "translate-x-12" : "translate-x-0"}`}
-      >
-        <div
-          className={`flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
-            message.sender === Cookies.get("token")
-              ? "bg-white  text-black rounded-br-none shadow-xl"
-              : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
-          }`}
-        >
-          {message.replyMessage && (
-            <div
-              className={`${
-                message.sender === Cookies.get("token")
-                  ? " rounded-br-none"
-                  : " rounded-bl-none"
-              } ${
-                message.replyMessageSender === Cookies.get("token")
-                  ? "border-red-400"
-                  : "border-blue-400"
-              } border-l-5 p-2 rounded-lg w-full bg-stone-200 text-gray-900`}
-            >
-              <p className="font-bold text-sm">
-                {message.replyMessageSender === Cookies.get("token")
-                  ? "You"
-                  : message.otherName}
-              </p>
-              <p className="text-xs">{message.replyMessage}</p>
-            </div>
-          )}
-          <div
-            className={`flex items-end gap-2 w-full px-2 ${
-              message.sender === Cookies.get("token") && "justify-end"
-            }`}
-          >
-            <p>{message.content}</p>
-            <div className="text-[10px] flex items-center">
-              {sendingMessages.includes(message._id) ? (
-                message?.error ? (
-                  <span className="text-red-500 text-[10px]">Failed</span>
-                ) : (
-                  <div className="loader w-3 h-3 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
-                )
-              ) : (
-                <>
-                  <p className="min-w-10">{getTime(message.createdAt)}</p>
-                  <IoCheckmarkDone
-                    size={16}
-                    color={message.isSeen ? "#4263ff" : "#000"}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-);
