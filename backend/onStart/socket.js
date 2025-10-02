@@ -9,8 +9,9 @@ const start_socket_server = (server, cache) => {
             origin: process.env.SOCKET_FRONTEND, // your React app URL
             methods: ["GET", "POST"],
         },
-        pingInterval: 3000, // 10 seconds
-        pingTimeout: 3000,   // 2.5 seconds
+        pingInterval: 25000, // 10 seconds
+        pingTimeout: 60000,   // 2.5 seconds
+        transports: ["websocket"], // ✅ avoid fallback
     });
 
     const connectedUsers = new Map(); // Maps socket.id to user info

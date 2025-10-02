@@ -17,11 +17,12 @@ export const useSocket = () => {
     const handleConnect = useCallback(() => {
         console.log("✅ Socket connected");
         loadConversations(); // load all conversations
-        setTimeout(() => setConnection(true), 500);
+        setConnection(true)
     }, []);
 
     // ✅ Handler: when socket disconnects
-    const handleDisconnect = useCallback(() => {
+    const handleDisconnect = useCallback((reason) => {
+        alert("disconnect reason : ", reason)
         console.log("❌ Disconnected from server");
         setConnection(false);
     }, []);
