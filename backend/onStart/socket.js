@@ -1,4 +1,5 @@
 const { Server } = require("socket.io");
+const User = require("../models/User")
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -28,13 +29,20 @@ const start_socket_server = (server, cache) => {
     });
 
     console.log("socket is started")
-    io.on("connection", (socket) => {
+    io.on("connection", async (socket) => {
         // Add this new user connection to our map
         // connectedUsers.set(socket.id, { userId: socket.userId, username: socket.username });
         connectedUsers.set(socket.userId, socket)
 
         // Update cache: mark this user as online
-        const user = cache.get(`user_${socket.userId}`)
+
+        let user = cache.get(`user_${socket.userId}`)
+
+        if (!user) {
+            user = await User.findById(socket.userId).select("-password").lean();
+        }
+        console.log(user);
+
         cache.set(`user_${user._id.toString()}`, { ...user, isOnline: true });
 
         // Tell others this user just came online

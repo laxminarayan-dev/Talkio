@@ -22,7 +22,7 @@ export const useSocket = () => {
 
     // ✅ Handler: when socket disconnects
     const handleDisconnect = useCallback((reason) => {
-        alert("disconnect reason : ", reason)
+        // alert("disconnect reason : ", reason)
         console.log("❌ Disconnected from server");
         setConnection(false);
     }, []);

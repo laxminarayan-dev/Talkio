@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
-// import socket from "../store/socket";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 export default function Login() {
@@ -12,6 +11,8 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [isloggedIn, setIsLoggedIn] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [responseMessage, setResponseMessage] = useState({});
   const navigate = useNavigate();
 
   const validate = () => {
@@ -34,19 +35,47 @@ export default function Login() {
     console.log("backend_url", backend_url);
 
     if (validate()) {
+      setIsLoading(true);
       try {
         const res = await axios.post(`${backend_url}/api/auth/login`, {
           username,
           password,
         });
         if (res.status == 200) {
+          // display successfull login and store cookies
+          setResponseMessage({
+            status: res.status,
+            message: "Login Successfull",
+          });
           Cookies.set("token", res.data.token, { expires: 7 }); // expires in 7 days
           Cookies.set("username", res.data.username, { expires: 7 }); // expires in 7 days
           Cookies.set("name", res.data.name, { expires: 7 }); // expires in 7 days
-          navigate("/");
+
+          // hide loading & message and then navigate
+          setTimeout(() => {
+            setResponseMessage({});
+            setIsLoading(false);
+            navigate("/");
+          }, 2000);
         }
       } catch (error) {
-        console.error("Error:", error);
+        if (error.status) {
+          setResponseMessage({
+            status: 400,
+            message: "Incorrect username or password!",
+          });
+        } else {
+          setResponseMessage({
+            status: 500,
+            message: "Network or Server Issue!",
+          });
+        }
+
+        setIsLoading(false);
+
+        setTimeout(() => {
+          setResponseMessage({});
+        }, 2000);
       }
     }
   };
@@ -65,8 +94,20 @@ export default function Login() {
   if (isloggedIn === null) return <Loading />;
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className=" min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      {responseMessage.status && (
+        <div
+          className={`absolute top-10 right-10 rounded-xl ${responseMessage.status == 200 ? "bg-green-500" : "bg-red-400"} px-5 py-2 z-100`}
+        >
+          {responseMessage.message}
+        </div>
+      )}
+      {isLoading && (
+        <div className="absolute w-full bg-slate-800/50 top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-90">
+          <Loading />
+        </div>
+      )}
+      <div className=" relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-8">
             <div className="mx-auto bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
