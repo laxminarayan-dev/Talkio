@@ -1,7 +1,14 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import {
+  FiLock,
+  FiAlertTriangle,
+  FiEye,
+  FiEyeOff,
+  FiLoader,
+} from "react-icons/fi";
 import Loading from "../components/Loading";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
@@ -13,7 +20,9 @@ export default function Login() {
   const [isloggedIn, setIsLoggedIn] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const usernameRef = useRef(null);
 
   const validate = () => {
     const newErrors = {};
@@ -21,7 +30,7 @@ export default function Login() {
       newErrors.username = "Username is required";
     }
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Password is required!";
     } else if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
@@ -47,9 +56,15 @@ export default function Login() {
             status: res.status,
             message: "Login Successfull",
           });
-          Cookies.set("token", res.data.token, { expires: 7 }); // expires in 7 days
-          Cookies.set("username", res.data.username, { expires: 7 }); // expires in 7 days
-          Cookies.set("name", res.data.name, { expires: 7 }); // expires in 7 days
+
+          // Set cookie expiration based on remember me
+          const cookieOptions = rememberMe
+            ? { expires: 30 } // 30 days if remember me is checked
+            : {}; // Session cookie if remember me is not checked (deleted when browser closes)
+
+          Cookies.set("token", res.data.token, cookieOptions);
+          Cookies.set("username", res.data.username, cookieOptions);
+          Cookies.set("name", res.data.name, cookieOptions);
 
           // hide loading & message and then navigate
           setTimeout(() => {
@@ -77,6 +92,10 @@ export default function Login() {
           setResponseMessage({});
         }, 2000);
       }
+    } else if (username.trim() === "" || password.trim() === "") {
+      setTimeout(() => {
+        setErrors({});
+      }, 5000);
     }
   };
 
@@ -91,17 +110,17 @@ export default function Login() {
     }
   }, [isloggedIn, navigate]);
 
+  // Auto-focus username field on component mount
+  useEffect(() => {
+    if (usernameRef.current) {
+      usernameRef.current.focus();
+    }
+  }, []);
+
   if (isloggedIn === null) return <Loading />;
 
   return (
-    <div className=" min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      {responseMessage.status && (
-        <div
-          className={`absolute top-10 right-10 rounded-xl ${responseMessage.status == 200 ? "bg-green-500" : "bg-red-400"} px-5 py-2 z-100`}
-        >
-          {responseMessage.message}
-        </div>
-      )}
+    <div className=" min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-gray-10 to-indigo-300 p-4">
       {isLoading && (
         <div className="absolute w-full bg-slate-800/50 top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-90">
           <Loading />
@@ -111,24 +130,22 @@ export default function Login() {
         <div className="p-8">
           <div className="text-center mb-8">
             <div className="mx-auto bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-indigo-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
+              <FiLock className="h-8 w-8 text-indigo-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">Welcome back</h1>
             <p className="text-gray-600 mt-2">Sign in to your account</p>
           </div>
+
+          {responseMessage.status && responseMessage.status !== 200 && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <FiAlertTriangle className="w-5 h-5 text-red-400 mr-2" />
+                <p className="text-sm text-red-700">
+                  {responseMessage.message}
+                </p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -139,6 +156,7 @@ export default function Login() {
                 Username
               </label>
               <input
+                ref={usernameRef}
                 id="username"
                 name="username"
                 type="username"
@@ -170,18 +188,31 @@ export default function Login() {
                   Forgot password?
                 </a>
               </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full px-4 py-3 pr-12 rounded-lg border ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" />
+                  ) : (
+                    <FiEye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
@@ -206,9 +237,19 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 font-medium"
+              disabled={isLoading}
+              className={`w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 font-medium ${
+                isLoading ? "opacity-75 cursor-not-allowed" : ""
+              }`}
             >
-              Sign in
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <FiLoader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                  Signing in...
+                </div>
+              ) : (
+                "Sign in"
+              )}
             </button>
           </form>
 

@@ -1,9 +1,11 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FiAlertTriangle, FiEye, FiEyeOff, FiUser } from "react-icons/fi";
 import Loading from "../components/Loading";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
+
 export default function Signup() {
   const [isloggedIn, setIsLoggedIn] = useState(null);
   const navigate = useNavigate();
@@ -15,6 +17,16 @@ export default function Signup() {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [responseMessage, setResponseMessage] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const nameRef = useRef(null);
+  // const [showPassword, setShowPassword] = useState(false);
+  // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // const [rememberMe, setRememberMe] = useState(false);
+  // const nameRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,6 +58,16 @@ export default function Signup() {
       newErrors.username =
         "Username can only contain letters, numbers, and underscores";
     }
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (formData.name.trim().length < 6) {
+      newErrors.name = "Name must be at least 6 characters";
+    } else if (formData.name.trim().length > 20) {
+      newErrors.name = "Name must be less than 20 characters";
+    } else if (!/^[a-zA-Z ]+$/.test(formData.name.trim())) {
+      newErrors.name = "Name can only contain letters and spaces";
+    }
 
     // Password validation
     if (!formData.password) {
@@ -67,37 +89,126 @@ export default function Signup() {
     return newErrors;
   };
 
+  const validateStep1 = () => {
+    const newErrors = {};
+
+    // Username validation
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required";
+    } else if (formData.username.length < 6) {
+      newErrors.username = "Username must be at least 6 characters";
+    } else if (formData.username.length > 20) {
+      newErrors.username = "Username must be less than 20 characters";
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username =
+        "Username can only contain letters, numbers, and underscores";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length > 16) {
+      newErrors.password = "Password must be less than 16 characters";
+    } else if (!/(?=.*[a-z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password =
+        "Password must contain at least one lowercase letter, and one number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (formData.name.trim().length < 6) {
+      newErrors.name = "Name must be at least 6 characters";
+    } else if (formData.name.trim().length > 20) {
+      newErrors.name = "Name must be less than 20 characters";
+    } else if (!/^[a-zA-Z ]+$/.test(formData.name.trim())) {
+      newErrors.name = "Name can only contain letters and spaces";
+    }
+
+    // Confirm password validation
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1 && validateStep1()) {
+      setCurrentStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep(1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = validate();
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setIsSubmitting(true);
+    if (currentStep === 2 && validateStep2()) {
+      setIsSubmitting(true);
 
-    try {
-      console.log(formData);
+      try {
+        const res = await axios.post(`${backend_url}/api/auth/register`, {
+          username: formData.username,
+          name: formData.name,
+          password: formData.password,
+        });
+        if (res.status == 200) {
+          // Set cookie expiration based on remember me
+          const cookieOptions = rememberMe
+            ? { expires: 30 } // 30 days if remember me is checked
+            : {}; // Session cookie if remember me is not checked (deleted when browser closes)
 
-      // Simulate API call
-      const res = await axios.post(`${backend_url}/api/auth/register`, {
-        username: formData.username,
-        name: formData.name,
-        password: formData.password,
-      });
-      if (res.status == 200) {
-        Cookies.set("token", res.data.token, { expires: 7 }); // expires in 7 days
-        Cookies.set("username", res.data.username, { expires: 7 }); // expires in 7 days
-        Cookies.set("name", res.data.name, { expires: 7 }); // expires in 7 days
-        navigate("/");
+          Cookies.set("token", res.data.token, cookieOptions);
+          Cookies.set("username", res.data.username, cookieOptions);
+          Cookies.set("name", res.data.name, cookieOptions);
+          setResponseMessage({
+            status: 200,
+            message: "Account created successfully! Redirecting...",
+          });
+          setTimeout(() => {
+            setResponseMessage({});
+            navigate("/");
+          }, 3000);
+        }
+      } catch (error) {
+        if (error.response) {
+          setResponseMessage({
+            status: error.response.status || 500,
+            message:
+              error.response.data.message ||
+              "An error occurred. Please try again later after few minutes!",
+          });
+        } else if (error.request) {
+          setResponseMessage({
+            status: 505,
+            message: "Server is not responding!",
+          });
+        } else {
+          setResponseMessage({
+            status: 500,
+            message:
+              "An error occurred. Please try again later after few minutes!",
+          });
+        }
+      } finally {
+        setIsSubmitting(false);
+        setTimeout(() => {
+          setResponseMessage({});
+        }, 3000);
       }
-    } catch (error) {
-      console.error("Error: " + error.response.data.message);
-
-      setErrors({ submit: "Registration failed. Please try again." });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -112,169 +223,256 @@ export default function Signup() {
     }
   }, [isloggedIn, navigate]);
 
+  // Auto-focus username field on component mount
+  useEffect(() => {
+    if (nameRef.current) {
+      nameRef.current.focus();
+    }
+  }, []);
+
   if (isloggedIn === null) return <Loading />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-10 to-indigo-300 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-8">
             <div className="mx-auto bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-indigo-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
+              <FiUser className="h-8 w-8 text-indigo-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800">Create Account</h1>
-            <p className="text-gray-600 mt-2">Join us today</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Create Account
+            </h1>
+            <p className="text-gray-600">Join our community</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-1"
+          {/* Step Indicators */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  currentStep >= 1
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-600"
+                }`}
               >
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.username ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
-                placeholder="Enter your username"
-              />
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-              )}
-            </div>
-            {/* Name Field */}
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                1
+              </div>
+              <div
+                className={`w-12 h-1 mx-2 ${
+                  currentStep >= 2 ? "bg-indigo-600" : "bg-gray-200"
+                }`}
+              ></div>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  currentStep >= 2
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-600"
+                }`}
               >
-                Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 rounded-lg border 
-                 border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
-                placeholder="Enter your name"
-              />
+                2
+              </div>
             </div>
+          </div>
 
-            {/* Password Field */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
-                placeholder="Create a password"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.confirmPassword ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
-                placeholder="Confirm your password"
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.confirmPassword}
+          {responseMessage.status && responseMessage.status !== 200 && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <FiAlertTriangle className="w-5 h-5 text-red-400 mr-2" />
+                <p className="text-sm text-red-700">
+                  {responseMessage.message}
                 </p>
-              )}
+              </div>
             </div>
+          )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 font-medium ${
-                isSubmitting ? "opacity-75 cursor-not-allowed" : ""
-              }`}
-            >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Step 1: Username and Password */}
+            {currentStep === 1 && (
+              <>
+                {/* Username Field */}
+                <div>
+                  <label
+                    htmlFor="username"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating Account...
-                </span>
-              ) : (
-                "Create Account"
-              )}
-            </button>
+                    Username
+                  </label>
+                  <input
+                    ref={nameRef}
+                    id="username"
+                    name="username"
+                    type="text"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      errors.username ? "border-red-500" : "border-gray-300"
+                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                    placeholder="Choose a username"
+                  />
+                  {errors.username && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.username}
+                    </p>
+                  )}
+                </div>
 
-            {/* Error Message */}
-            {errors.submit && (
-              <p className="text-sm text-red-600 text-center">
-                {errors.submit}
-              </p>
+                {/* Password Field */}
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 pr-12 rounded-lg border ${
+                        errors.password ? "border-red-500" : "border-gray-300"
+                      } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                      placeholder="Create a password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showPassword ? (
+                        <FiEyeOff className="h-5 w-5" />
+                      ) : (
+                        <FiEye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+                >
+                  Next
+                </button>
+              </>
+            )}
+
+            {/* Step 2: Name and Confirm Password */}
+            {currentStep === 2 && (
+              <>
+                {/* Name Field */}
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      errors.name ? "border-red-500" : "border-gray-300"
+                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                    placeholder="Enter your full name"
+                  />
+                  {errors.name && (
+                    <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* Confirm Password Field */}
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 pr-12 rounded-lg border ${
+                        errors.confirmPassword
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                      placeholder="Confirm your password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showConfirmPassword ? (
+                        <FiEyeOff className="h-5 w-5" />
+                      ) : (
+                        <FiEye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                {/* Remember Me Checkbox */}
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
+                    Remember me
+                  </label>
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    {isSubmitting ? "Creating Account..." : "Create Account"}
+                  </button>
+                </div>
+              </>
             )}
           </form>
 

@@ -51,16 +51,16 @@ route.post("/register", async (req, res) => {
                     token: user["_id"],
                     username: user["username"],
                     name: user["name"],
-                    message: "User Data saved successfully"
+                    message: "User Data saved successfully."
                 })
             } catch (error) {
-                res.status(500).send({
-                    message: "Failed to save User Data "
+                res.status(502).send({
+                    message: "Failed to save User Data!"
                 })
             }
         } else {
-            res.status(401).send({
-                "message": "user already exist"
+            res.status(409).send({
+                message: "User already exist. Choose different username."
             })
         }
 
