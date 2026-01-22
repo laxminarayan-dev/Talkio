@@ -2,7 +2,7 @@ const express = require("express");
 const route = express.Router()
 const userModel = require("../models/User")
 const otpModel = require("../models/OTP")
-const nodemailer = require("nodemailer");
+import { Resend } from 'resend';
 
 route.post("/login", async (req, res) => {
     const { username, password } = req.body;
@@ -70,20 +70,14 @@ route.post("/send-otp", async (req, res) => {
         });
         await otpDoc.save();
 
-        // For testing: Log OTP to console instead of sending email
-        // console.log(`OTP for ${email}: ${otp}`);
-        // console.log('Email sending disabled for testing');
+        // Set OTP expiration time (e.g., 5 minutes)
+        const expirationTime = new Date(Date.now() + 5 * 60 * 1000);
+        otpDoc.expiresAt = expirationTime;
+        await otpDoc.save();
+        // Send OTP via email
 
-        // Uncomment the email sending code below when ready to send actual emails
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
-
-        const mailOptions = {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Your OTP for Talkio Registration',
@@ -100,7 +94,7 @@ route.post("/send-otp", async (req, res) => {
                     <p>Best regards,<br>Talkio Team</p>
                 </div>
             `
-        };
+        });
 
         await transporter.sendMail(mailOptions);
 
