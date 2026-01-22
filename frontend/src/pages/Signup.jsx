@@ -7,8 +7,8 @@ import Loading from "../components/Loading";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 export default function Signup() {
-  const [isloggedIn, setIsLoggedIn] = useState(null);
   const navigate = useNavigate();
+  const [isloggedIn, setIsLoggedIn] = useState(null);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -23,10 +23,6 @@ export default function Signup() {
   const [rememberMe, setRememberMe] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const nameRef = useRef(null);
-  // const [showPassword, setShowPassword] = useState(false);
-  // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  // const [rememberMe, setRememberMe] = useState(false);
-  // const nameRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -146,6 +142,10 @@ export default function Signup() {
   const handleNext = () => {
     if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2);
+    } else if (formData.username.trim() === "" || formData.password === "") {
+      setTimeout(() => {
+        setErrors({});
+      }, 5000);
     }
   };
 
@@ -209,14 +209,23 @@ export default function Signup() {
           setResponseMessage({});
         }, 3000);
       }
+    } else if (
+      formData.name.trim() === "" ||
+      formData.confirmPassword.trim() === ""
+    ) {
+      setTimeout(() => {
+        setErrors({});
+      }, 5000);
     }
   };
 
+  // ✅ check login status on mount
   useEffect(() => {
     const token = Cookies.get("token");
     setIsLoggedIn(!!token); // true if token exists, false otherwise
   }, []);
 
+  // Redirect if logged in
   useEffect(() => {
     if (isloggedIn) {
       navigate("/", { replace: true }); // ✅ safe redirect after render
