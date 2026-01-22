@@ -97,8 +97,6 @@ route.post("/send-otp", async (req, res) => {
             `
         });
 
-        await transporter.sendMail(mailOptions);
-
         res.status(200).json({
             message: "OTP sent successfully"
         });
