@@ -2,7 +2,8 @@ const express = require("express");
 const route = express.Router()
 const userModel = require("../models/User")
 const otpModel = require("../models/OTP")
-import { Resend } from 'resend';
+const Resend = require('resend').Resend;
+
 
 route.post("/login", async (req, res) => {
     const { username, password } = req.body;
