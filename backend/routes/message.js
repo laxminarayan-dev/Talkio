@@ -125,7 +125,7 @@ route.post("/lastConversation", async (req, res) => {
     res.status(200).json(messagesWithOnlineStatus);
 })
 
-route.post("/allConversation", async (req, res) => {
+route.post("/allConversations", async (req, res) => {
     try {
         const { userId } = req.body;
         if (!userId) {
