@@ -5,7 +5,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
 export const fetchConversations = async () => {
     try {
         const res = await axios.post(
-            `${backend_url}/api/messages/all`,
+            `${backend_url}/api/messages/allConversations`,
             {
                 userId: Cookies.get("token"),
             }
