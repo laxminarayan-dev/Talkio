@@ -12,7 +12,7 @@ else{
   console.log("something")
 }
 
-const socket = io(origin, {
+const socket = io(backend_url, {
   path: "/socket.io",
   // path: "/talkio-backend/socket.io",
   autoConnect: false,
