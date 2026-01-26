@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 const socket = io(backend_url, {
-    path: "/talkio-backend",
+    path: "/talkio-backend/socket.io",
     autoConnect: false,
     transports: ["websocket"], // helps prevent polling issues on Render
     pingInterval: 25000,
