@@ -5,6 +5,12 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 // Extract protocol + host (remove /talkio-backend)
 //const { origin } = new URL(backend_url);
+if(!backend_url){
+  console.log("nothing")
+}
+else{
+  console.log("something")
+}
 
 const socket = io(origin, {
   path: "/socket.io",
