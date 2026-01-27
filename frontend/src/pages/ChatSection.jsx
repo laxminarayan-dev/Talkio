@@ -28,10 +28,17 @@ const ChatSection = () => {
   const [replyMessage, setReplyMessage] = useState(null);
   const [sendingMessages, setSendingMessages] = useState([]);
   const [sending, setSending] = useState(false);
+  const token = Cookies.get("token");
 
   // const isTouchDevice =
   //   "ontouchstart" in window || navigator.maxTouchPoints > 0;
   // const isRealDesktop = isDesktop && !isTouchDevice;
+
+  useEffect(() => {
+    if (userId === token) {
+      navigate("/");
+    }
+  }, []);
 
   const fetchUserDetail = async () => {
     setLoading(true);
@@ -89,7 +96,7 @@ const ChatSection = () => {
         // emit that new message is seen
         socket.emit("messagesSeen", {
           senderId: userId,
-          receiverId: Cookies.get("token"),
+          receiverId: token,
           seenAt: seenAt,
         });
       } else {
@@ -120,7 +127,7 @@ const ChatSection = () => {
     const tempId = Date.now(); // temporary unique ID
     const tempMessage = {
       _id: tempId,
-      sender: Cookies.get("token"),
+      sender: token,
       content: newMessage,
       createdAt: new Date().toISOString(),
       isTemp: true,

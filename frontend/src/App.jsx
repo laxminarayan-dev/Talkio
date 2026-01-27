@@ -1,5 +1,5 @@
 import Cookies from "js-cookie";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Root from "./Root";
 import Loading from "./components/Loading";
@@ -10,6 +10,15 @@ import ChatSection from "./pages/ChatSection";
 import ErrorPage from "./components/ErrorPage";
 import FindUser from "./pages/FindUser";
 
+const ProtectedRoute = ({ element }) => {
+  const { userId } = useParams();
+  const token = Cookies.get("token");
+  if (userId === token) {
+    return <Navigate to="/" replace />;
+  }
+  return element;
+};
+
 const App = () => {
   const [isloggedIn, setIsLoggedIn] = useState(null);
 
@@ -17,6 +26,7 @@ const App = () => {
     const token = Cookies.get("token");
     if (token) {
       setIsLoggedIn(true);
+      // Decode token to get userId (adjust based on your token structure)
     } else {
       setIsLoggedIn(false);
     }
@@ -29,7 +39,10 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Root />}>
         <Route index element={<Home />} />
-        <Route path="chat/:userId" element={<ChatSection />} />
+        <Route
+          path="chat/:userId"
+          element={<ProtectedRoute element={<ChatSection />} />}
+        />
       </Route>
       <Route path="find-user" element={<FindUser />} />
       <Route path="/login" element={<Login />} />

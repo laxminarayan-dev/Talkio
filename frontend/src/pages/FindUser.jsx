@@ -3,11 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { FaUserAlt } from "react-icons/fa";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
+import Cookies from "js-cookie";
 
 const FindUser = () => {
   const [query, setQuery] = useState(""); // search input
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const username = Cookies.get("username");
 
   const navigate = useNavigate();
   const fetchResults = async (searchTerm) => {
@@ -15,9 +17,16 @@ const FindUser = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${backend_url}/api/user/find?q=${searchTerm}`
+        `${backend_url}/api/user/find?q=${searchTerm}`,
       );
-      setResults(response.data.results); // Adjust according to your API response
+      const filteredResults = response.data.results.filter(
+        (user) => user.username !== username,
+      );
+      console.log(filteredResults);
+
+      setResults(filteredResults);
+      // Remove current user from results
+      setResults(filteredResults); // Adjust according to your API response
     } catch (err) {
       console.error(err);
     } finally {
