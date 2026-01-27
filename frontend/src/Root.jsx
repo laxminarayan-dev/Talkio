@@ -55,7 +55,7 @@ const Root = () => {
   // filtered conversation
   const visibleConversations = useMemo(() => {
     return sortedConversations.filter((conv) =>
-      (conv.otherName || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (conv.otherName || "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [searchQuery, sortedConversations]);
 
@@ -186,6 +186,7 @@ const Root = () => {
                 }}
                 className="flex items-center p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer"
               >
+                {console.log("Conversation:", { ...conv })}
                 <div className="relative">
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${"bg-indigo-400"}`}

@@ -28,7 +28,7 @@ const MessageBubble = React.memo(
                 setIsSwipedRight(false);
               }, 200);
             },
-          }
+          },
     );
 
     return (
@@ -42,7 +42,6 @@ const MessageBubble = React.memo(
       ${isSwipedLeft ? "translate-x-[-3rem]" : "translate-x-0"}
       ${isSwipedRight ? "translate-x-12" : "translate-x-0"}`}
       >
-        {console.log(message)}
         <div
           className={`flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
             message.sender === Cookies.get("token")
@@ -99,6 +98,6 @@ const MessageBubble = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 export default MessageBubble;

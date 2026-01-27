@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useState, useRef, useEffect, useMemo, useContext } from "react";
 import { LuMessageSquareText } from "react-icons/lu";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import socket from "../store/socket";
 import { ChatContext } from "../store/ChatContext";
@@ -12,6 +12,7 @@ import { getDateLabel, isSameDay } from "../utils/time";
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 const ChatSection = () => {
+  const navigate = useNavigate();
   const { conversations, setConversations } = useContext(ChatContext);
   const [loading, setLoading] = useState(false);
   const { userId } = useParams();
@@ -48,12 +49,13 @@ const ChatSection = () => {
       setLoading(false);
     } catch (error) {
       console.error(error);
+      navigate("/");
     }
   };
 
   useEffect(() => {
     const currentConversation = conversations.find(
-      (conv) => conv.withUser === userId
+      (conv) => conv.withUser === userId,
     );
     if (currentConversation) {
       // ✅ Set receiver
@@ -65,22 +67,24 @@ const ChatSection = () => {
       });
       // Check if there are unseen messages from others
       const unseenExists = currentConversation.messages.some(
-        (msg) => msg.sender === userId && !msg.isSeen
+        (msg) => msg.sender === userId && !msg.isSeen,
       );
 
       if (unseenExists) {
         const seenAt = new Date().toISOString();
         // ✅ Update seen status for messages sent by the other user
         const newMessagesList = currentConversation.messages.map((msg) =>
-          msg.sender === userId ? { ...msg, isSeen: true, seenAt: seenAt } : msg
+          msg.sender === userId
+            ? { ...msg, isSeen: true, seenAt: seenAt }
+            : msg,
         );
         setMessages(newMessagesList);
         setConversations((prevConvs) =>
           prevConvs.map((conv) =>
             conv.withUser === userId
               ? { ...conv, messages: newMessagesList }
-              : conv
-          )
+              : conv,
+          ),
         );
         // emit that new message is seen
         socket.emit("messagesSeen", {
@@ -105,7 +109,7 @@ const ChatSection = () => {
 
   const sortedMessages = useMemo(() => {
     return [...messages].sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
   }, [messages]);
 
@@ -147,7 +151,7 @@ const ChatSection = () => {
 
       setNewMessage("");
       setMessages((prev) =>
-        prev.map((msg) => (msg._id === tempId ? res.data : msg))
+        prev.map((msg) => (msg._id === tempId ? res.data : msg)),
       );
       setSendingMessages((prev) => prev.filter((id) => id !== tempId));
 
@@ -161,7 +165,7 @@ const ChatSection = () => {
     } catch (error) {
       console.error(error.response.data);
       setMessages((prev) =>
-        prev.map((msg) => (msg._id === tempId ? { ...msg, error: true } : msg))
+        prev.map((msg) => (msg._id === tempId ? { ...msg, error: true } : msg)),
       );
     }
     setSending(false);
@@ -238,7 +242,7 @@ const ChatSection = () => {
               index === sortedMessages.length - 1 ||
               !isSameDay(
                 message.createdAt,
-                sortedMessages[index + 1].createdAt
+                sortedMessages[index + 1].createdAt,
               );
 
             return (

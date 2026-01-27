@@ -15,7 +15,7 @@ export const useSocket = () => {
 
     // ✅ Handler: when socket connects
     const handleConnect = useCallback(() => {
-        console.log("✅ Socket connected");
+
         loadConversations(); // load all conversations
         setConnection(true)
     }, []);
@@ -23,7 +23,7 @@ export const useSocket = () => {
     // ✅ Handler: when socket disconnects
     const handleDisconnect = useCallback((reason) => {
         // alert("disconnect reason : ", reason)
-        console.log("❌ Disconnected from server");
+
         setConnection(false);
     }, []);
 

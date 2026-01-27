@@ -41,7 +41,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("backend_url", backend_url);
 
     if (validate()) {
       setIsLoading(true);
