@@ -2,6 +2,7 @@ const express = require("express");
 const route = express.Router()
 const userModel = require("../models/User")
 const otpModel = require("../models/OTP")
+const nodemailer = require("nodemailer");
 const Resend = require('resend').Resend;
 
 
@@ -77,9 +78,18 @@ route.post("/send-otp", async (req, res) => {
         await otpDoc.save();
         // Send OTP via email
 
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-            from: process.env.EMAIL_USER,
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false, // STARTTLS
+            auth: {
+                user: process.env.GMAIL_APP_USER,
+                pass: process.env.GMAIL_APP_PASSWORD,
+            },
+        });
+
+        const otpsend = await transporter.sendMail({
+            from: "otp@talkio.luckyjaswal.dev",
             to: email,
             subject: 'Your OTP for Talkio Registration',
             html: `
@@ -96,6 +106,9 @@ route.post("/send-otp", async (req, res) => {
                 </div>
             `
         });
+
+        console.log(otpsend);
+
 
         res.status(200).json({
             message: "OTP sent successfully"
