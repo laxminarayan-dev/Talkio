@@ -298,6 +298,15 @@ const ChatSection = () => {
     }
   };
 
+  const handleInputKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (newMessage.trim() && !sending) {
+        handleSendMessage(e);
+      }
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === "") return;
@@ -530,9 +539,11 @@ const ChatSection = () => {
             type="text"
             value={newMessage}
             onChange={handleTypingInputChange}
+            onKeyDown={handleInputKeyDown}
             onBlur={emitStopTyping}
             placeholder="Type a message"
             disabled={sending} // 🚫 disable while sending
+            enterKeyHint="enter"
             className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-slate-900/90 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 mx-2 shadow"
           />
 
