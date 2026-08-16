@@ -53,14 +53,14 @@ const FindUser = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-slate-950 text-slate-100">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-3">
+      <div className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800 p-3">
         <div className="relative max-w-xl mx-auto">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-400"
+              className="h-5 w-5 text-slate-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -76,14 +76,14 @@ const FindUser = () => {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-slate-800"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
           />
           <button
             onClick={() => navigate(-1)}
-            className="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-700"
+            className="absolute right-0 top-0 h-full px-3 text-slate-400 hover:text-slate-200"
           >
             Cancel
           </button>
@@ -101,7 +101,7 @@ const FindUser = () => {
             {results.map((user) => (
               <div
                 key={user._id}
-                className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
@@ -109,7 +109,7 @@ const FindUser = () => {
                   </div>
                   <div className="ml-3">
                     <div className="flex items-center">
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-slate-100">
                         {user.name}
                       </h3>
                       {user.isVerified && (
@@ -127,7 +127,7 @@ const FindUser = () => {
                         </svg>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">@{user.username}</p>
+                    <p className="text-sm text-slate-400">@{user.username}</p>
                   </div>
                 </div>
                 <button
@@ -140,10 +140,10 @@ const FindUser = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full pt-16 px-6 text-center text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full pt-16 px-6 text-center text-slate-400">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto text-gray-300 mb-4"
+              className="h-16 w-16 mx-auto text-slate-600 mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -155,7 +155,7 @@ const FindUser = () => {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">
+            <h3 className="text-lg font-medium text-slate-200 mb-1">
               No users found
             </h3>
             <p className="text-sm">Try searching for a name or username</p>

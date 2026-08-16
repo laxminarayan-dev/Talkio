@@ -2,14 +2,14 @@ import { useState } from "react";
 
 const Home = () => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-slate-950">
       {/* Main Chat Area (Placeholder) */}
-      <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
+      <div className="hidden md:flex flex-1 items-center justify-center bg-slate-900">
         <div className="text-center p-8 max-w-md">
-          <div className="mx-auto bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex items-center justify-center mb-4">
+          <div className="mx-auto bg-slate-800 border-2 border-dashed border-slate-700 rounded-xl w-16 h-16 flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-gray-500"
+              className="h-8 w-8 text-slate-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -22,10 +22,10 @@ const Home = () => {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-bold text-slate-100 mb-2">
             Your messages
           </h2>
-          <p className="text-gray-600">
+          <p className="text-slate-400">
             Select a conversation from the list to start chatting
           </p>
         </div>

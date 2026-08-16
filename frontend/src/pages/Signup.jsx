@@ -360,17 +360,17 @@ export default function Signup() {
   if (isloggedIn === null) return <Loading />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-10 to-indigo-300 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-md overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className="mx-auto bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-              <FiUser className="h-8 w-8 text-indigo-600" />
+            <div className="mx-auto bg-indigo-500/20 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+              <FiUser className="h-8 w-8 text-indigo-300" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-slate-100 mb-2">
               Create Account
             </h1>
-            <p className="text-gray-600">Join our community</p>
+            <p className="text-slate-400">Join our community</p>
           </div>
 
           {/* Step Indicators */}
@@ -380,35 +380,35 @@ export default function Signup() {
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   currentStep >= 1
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    : "bg-slate-700 text-slate-300"
                 }`}
               >
                 1
               </div>
               <div
                 className={`w-8 h-1 mx-2 ${
-                  currentStep >= 2 ? "bg-indigo-600" : "bg-gray-200"
+                  currentStep >= 2 ? "bg-indigo-600" : "bg-slate-700"
                 }`}
               ></div>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   currentStep >= 2
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    : "bg-slate-700 text-slate-300"
                 }`}
               >
                 2
               </div>
               <div
                 className={`w-8 h-1 mx-2 ${
-                  currentStep >= 3 ? "bg-indigo-600" : "bg-gray-200"
+                  currentStep >= 3 ? "bg-indigo-600" : "bg-slate-700"
                 }`}
               ></div>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   currentStep >= 3
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    : "bg-slate-700 text-slate-300"
                 }`}
               >
                 3
@@ -435,7 +435,7 @@ export default function Signup() {
                 <div>
                   <label
                     htmlFor="username"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-300 mb-2"
                   >
                     Username
                   </label>
@@ -447,8 +447,8 @@ export default function Signup() {
                     value={formData.username}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 rounded-lg border ${
-                      errors.username ? "border-red-500" : "border-gray-300"
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                      errors.username ? "border-red-500" : "border-slate-700"
+                    } bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                     placeholder="Choose a username"
                   />
                   {errors.username && (
@@ -462,7 +462,7 @@ export default function Signup() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-300 mb-2"
                   >
                     Email
                   </label>
@@ -473,8 +473,8 @@ export default function Signup() {
                     value={formData.email}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 rounded-lg border ${
-                      errors.email ? "border-red-500" : "border-gray-300"
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                      errors.email ? "border-red-500" : "border-slate-700"
+                    } bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                     placeholder="Enter your email address"
                   />
                   {errors.email && (
@@ -500,7 +500,7 @@ export default function Signup() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-300 mb-2"
                   >
                     Full Name
                   </label>
@@ -511,8 +511,8 @@ export default function Signup() {
                     value={formData.name}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 rounded-lg border ${
-                      errors.name ? "border-red-500" : "border-gray-300"
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                      errors.name ? "border-red-500" : "border-slate-700"
+                    } bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                     placeholder="Enter your full name"
                   />
                   {errors.name && (
@@ -524,7 +524,7 @@ export default function Signup() {
                 <div>
                   <label
                     htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-300 mb-2"
                   >
                     Password
                   </label>
@@ -536,14 +536,14 @@ export default function Signup() {
                       value={formData.password}
                       onChange={handleChange}
                       className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                        errors.password ? "border-red-500" : "border-gray-300"
-                      } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                        errors.password ? "border-red-500" : "border-slate-700"
+                      } bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                       placeholder="Create a password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-300 focus:outline-none"
                     >
                       {showPassword ? (
                         <FiEyeOff className="h-5 w-5" />
@@ -563,7 +563,7 @@ export default function Signup() {
                 <div>
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-300 mb-2"
                   >
                     Confirm Password
                   </label>
@@ -577,8 +577,8 @@ export default function Signup() {
                       className={`w-full px-4 py-3 pr-12 rounded-lg border ${
                         errors.confirmPassword
                           ? "border-red-500"
-                          : "border-gray-300"
-                      } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                            : "border-slate-700"
+                          } bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                       placeholder="Confirm your password"
                     />
                     <button
@@ -586,7 +586,7 @@ export default function Signup() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-300 focus:outline-none"
                     >
                       {showConfirmPassword ? (
                         <FiEyeOff className="h-5 w-5" />
@@ -610,11 +610,11 @@ export default function Signup() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-600 bg-slate-800 rounded"
                   />
                   <label
                     htmlFor="remember-me"
-                    className="ml-2 block text-sm text-gray-700"
+                    className="ml-2 block text-sm text-slate-300"
                   >
                     Remember me
                   </label>
@@ -625,7 +625,7 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                    className="flex-1 bg-slate-700 text-slate-200 py-3 px-4 rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition"
                   >
                     Back
                   </button>
@@ -645,10 +645,10 @@ export default function Signup() {
             {currentStep === 3 && (
               <>
                 <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-slate-100 mb-2">
                     Verify Your Email
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-400">
                     We've sent a 6-digit OTP to{" "}
                     <span className="font-medium text-indigo-600">
                       {formData.email}
@@ -660,7 +660,7 @@ export default function Signup() {
                 <div>
                   <label
                     htmlFor="otp"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-slate-300 mb-2"
                   >
                     Enter OTP
                   </label>
@@ -672,8 +672,8 @@ export default function Signup() {
                     onChange={handleChange}
                     maxLength="6"
                     className={`w-full px-4 py-3 rounded-lg border text-center text-2xl font-mono tracking-widest ${
-                      errors.otp ? "border-red-500" : "border-gray-300"
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
+                      errors.otp ? "border-red-500" : "border-slate-700"
+                    } bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                     placeholder="000000"
                   />
                   {errors.otp && (
@@ -687,7 +687,7 @@ export default function Signup() {
                     type="button"
                     onClick={sendOtp}
                     disabled={otpCountdown > 0 || isSendingOtp}
-                    className="text-sm text-indigo-600 hover:text-indigo-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="text-sm text-indigo-400 hover:text-indigo-300 disabled:text-slate-500 disabled:cursor-not-allowed"
                   >
                     {isSendingOtp
                       ? "Sending..."
@@ -702,7 +702,7 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition"
+                    className="flex-1 bg-slate-700 text-slate-200 py-3 px-4 rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition"
                   >
                     Back
                   </button>
@@ -719,7 +719,7 @@ export default function Signup() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Already have an account?{" "}
               <Link
                 to="/login"
@@ -730,8 +730,8 @@ export default function Signup() {
             </p>
           </div>
         </div>
-        <div className="bg-gray-50 px-8 py-4 text-center">
-          <p className="text-xs text-gray-500">
+        <div className="bg-slate-950 px-8 py-4 text-center border-t border-slate-800">
+          <p className="text-xs text-slate-500">
             © 2025 UsChat. All rights reserved.
           </p>
         </div>

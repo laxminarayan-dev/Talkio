@@ -180,7 +180,7 @@ const ChatSection = () => {
 
   return (
     <div
-      className="md:w-[calc(100vw-24rem)] md:left-96 fixed inset-0 flex flex-col bg-gray-200 bottom-0 overflow-y-"
+      className="md:w-[calc(100vw-24rem)] md:left-96 fixed inset-0 flex flex-col bg-slate-950 bottom-0 overflow-y-"
       style={{
         backgroundImage: `url('/kukki-bg.png')`,
         backgroundSize: "cover",
@@ -189,7 +189,7 @@ const ChatSection = () => {
       }}
     >
       {/* Chat Header */}
-      <div className="flex-shrink-0 w-full h-18 top-0 bg-gray-100 p-4 border-b border-gray-400 flex items-center z-10">
+      <div className="flex-shrink-0 w-full h-18 top-0 bg-slate-900/90 backdrop-blur-sm p-4 border-b border-slate-700 flex items-center z-10">
         <div className="relative">
           <div
             className={`w-10 h-10 rounded-full ${
@@ -201,20 +201,20 @@ const ChatSection = () => {
           <div
             className={`absolute bottom-0 right-0 w-3 h-3 ${
               receiver.isOnline ? "bg-green-500" : "bg-red-500"
-            } border-1 border-white rounded-full`}
+            } border-1 border-slate-900 rounded-full`}
           ></div>
         </div>
         <div className="ml-3">
-          <h2 className="font-semibold text-gray-900">
+          <h2 className="font-semibold text-slate-100">
             {receiver.name || "User"}
           </h2>
-          <p className={`text-xs text-gray-600`}>@{receiver.username}</p>
+          <p className={`text-xs text-slate-400`}>@{receiver.username}</p>
         </div>
         <div className="ml-auto flex space-x-4">
-          <button className="p-2 rounded-full hover:bg-gray-100">
+          <button className="p-2 rounded-full hover:bg-slate-800">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-600"
+              className="h-5 w-5 text-slate-300"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -234,9 +234,9 @@ const ChatSection = () => {
         className={`flex-1 flex flex-col-reverse pt-4 pb-4 overflow-y-scroll px-4 overflow-x-hidden z-0`}
       >
         {sortedMessages.length === 0 && (
-          <div className="flex flex-1 flex-col items-center justify-center pt-16 px-6 text-center text-gray-500">
+          <div className="flex flex-1 flex-col items-center justify-center pt-16 px-6 text-center text-slate-400">
             <LuMessageSquareText size={48} />
-            <h3 className="text-lg font-medium text-gray-700 mb-1">
+            <h3 className="text-lg font-medium text-slate-200 mb-1">
               No messages yet.
             </h3>
             <p className="text-sm">Send your first message!</p>
@@ -256,7 +256,7 @@ const ChatSection = () => {
               <div key={index}>
                 {showDateMarker && (
                   <div className="flex justify-center my-4">
-                    <div className="bg-gray-700 text-white text-xs px-3 py-1 rounded-full shadow">
+                    <div className="bg-slate-800 text-slate-200 text-xs px-3 py-1 rounded-full shadow border border-slate-700">
                       {getDateLabel(message.createdAt)}
                     </div>
                   </div>
@@ -276,7 +276,7 @@ const ChatSection = () => {
       {replyMessage != null && (
         <div className="flex-shrink-0 flex mt-2 pl-6 pr-15 min-h-fit w-full justify-center md:w-[calc(100vw-24rem)]">
           <div
-            className={`bg-gray-900 p-2 border-l-6 rounded-xl flex-1 place-items-start ${
+            className={`bg-slate-900 p-2 border-l-6 rounded-xl flex-1 place-items-start ${
               replyMessage.sender === Cookies.get("token")
                 ? "border-red-400"
                 : "border-blue-400"
@@ -295,7 +295,7 @@ const ChatSection = () => {
                   : replyMessage.senderName}
               </span>
               <br />
-              <span className="text-wrap text-sm text-gray-200">
+              <span className="text-wrap text-sm text-slate-300">
                 {replyMessage.content}
               </span>
             </div>
@@ -303,7 +303,7 @@ const ChatSection = () => {
               onClick={() => {
                 setReplyMessage(null);
               }}
-              className="text-gray-400 hover:text-gray-100 font-bold "
+              className="text-slate-500 hover:text-slate-100 font-bold "
               aria-label="Cancel Reply"
             >
               <IoClose size={20} />
@@ -324,7 +324,7 @@ const ChatSection = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message"
             disabled={sending} // 🚫 disable while sending
-            className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-gray-100 border-2 border-gray-200 mx-2 shadow"
+            className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-slate-900/90 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 mx-2 shadow"
           />
 
           <button
@@ -333,7 +333,7 @@ const ChatSection = () => {
             className={`p-2 rounded-full shadow ${
               newMessage.trim()
                 ? "bg-indigo-500 hover:bg-indigo-600"
-                : "bg-gray-300 cursor-not-allowed"
+                : "bg-slate-700 cursor-not-allowed"
             }`}
           >
             <svg

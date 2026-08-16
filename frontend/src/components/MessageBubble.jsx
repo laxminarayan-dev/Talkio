@@ -45,8 +45,8 @@ const MessageBubble = React.memo(
         <div
           className={`flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
             message.sender === Cookies.get("token")
-              ? "bg-white  text-black rounded-br-none shadow-xl"
-              : "bg-black border  shadow-xl text-gray-200 rounded-bl-none"
+              ? "bg-slate-100 text-slate-900 rounded-br-none shadow-xl"
+              : "bg-slate-800 border border-slate-700 shadow-xl text-slate-200 rounded-bl-none"
           }`}
         >
           {message.replyMessage && (
@@ -59,7 +59,7 @@ const MessageBubble = React.memo(
                 message.replyMessageSender === Cookies.get("token")
                   ? "border-red-400"
                   : "border-blue-400"
-              } border-l-5 p-2 rounded-lg w-full bg-stone-200 text-gray-900`}
+              } border-l-5 p-2 rounded-lg w-full bg-slate-700 text-slate-100`}
             >
               <p className="font-bold text-sm">
                 {/* {message.replyMessageSender === Cookies.get("token")
@@ -80,7 +80,7 @@ const MessageBubble = React.memo(
                 message?.error ? (
                   <span className="text-red-500 text-[10px]">Failed</span>
                 ) : (
-                  <div className="loader w-3 h-3 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
+                  <div className="loader w-3 h-3 border-2 border-slate-400 border-t-slate-900 rounded-full animate-spin"></div>
                 )
               ) : (
                 <>
@@ -88,7 +88,7 @@ const MessageBubble = React.memo(
                   {message.sender === Cookies.get("token") && (
                     <IoCheckmarkDone
                       size={16}
-                      color={message.isSeen ? "#4263ff" : "#000"}
+                      color={message.isSeen ? "#4263ff" : "#94a3b8"}
                     />
                   )}
                 </>
