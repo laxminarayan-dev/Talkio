@@ -48,7 +48,7 @@ const MessageBubble = React.memo(
       <div
         {...swipeHandler}
         onPointerUp={handleTapToReact}
-        className={`flex  align-bottom mb-5 ${
+        className={`flex  align-bottom ${message.reaction ? "mb-5" : "mb-2" }  ${
           message.sender === Cookies.get("token")
             ? "justify-end"
             : "justify-start"
