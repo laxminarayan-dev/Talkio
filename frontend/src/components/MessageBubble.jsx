@@ -121,7 +121,7 @@ const MessageBubble = React.memo(
           </div>
           {message.reaction && (
             <div
-              className={`absolute -bottom-5 ${
+              className={`absolute -bottom-4 ${
                 message.sender === Cookies.get("token") ? "right-2" : "left-2"
               } bg-slate-900 border border-slate-700 rounded-full px-1 py-1.5 text-sm leading-none shadow-md select-none`}
             >
