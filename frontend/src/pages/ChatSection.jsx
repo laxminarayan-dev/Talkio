@@ -182,7 +182,7 @@ const ChatSection = () => {
     <div
       className="md:w-[calc(100vw-24rem)] md:left-96 fixed inset-0 flex flex-col bg-gray-200 bottom-0 overflow-y-"
       style={{
-        backgroundImage: `url('/chat-bg-4.png')`,
+        backgroundImage: `url('/kukki-bg.png')`,
         backgroundSize: "contain",
         backgroundRepeat: "repeat",
         backgroundPosition: "center",
