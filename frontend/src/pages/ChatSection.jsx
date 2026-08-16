@@ -184,7 +184,7 @@ const ChatSection = () => {
       style={{
         backgroundImage: `url('/kukki-bg.png')`,
         backgroundSize: "contain",
-        backgroundRepeat: "repeat",
+        backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
       }}
     >
