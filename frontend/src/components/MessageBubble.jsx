@@ -89,12 +89,12 @@ const MessageBubble = React.memo(
             }`}
           >
             <p
-              className="min-w-[calc(100%-3rem)] break-all whitespace-pre-wrap max-w-[90%] "
+              className="min-w-[calc(100%-4rem)] break-all whitespace-pre-wrap max-w-[90%] "
               style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
             >
               {message.content}
             </p>
-            <div className="text-[10px] flex items-center gap-1 min-w-0">
+            <div className="text-[10px] flex items-center gap-1">
               {sendingMessages.includes(message._id) ? (
                 message?.error ? (
                   <span className="text-red-500 text-[10px]">Failed</span>
@@ -106,6 +106,7 @@ const MessageBubble = React.memo(
                   <p className="min-w-10">{getTime(message.createdAt)}</p>
                   {message.sender === Cookies.get("token") && (
                     <IoCheckmarkDone
+                      className="min-w-4"
                       size={16}
                       color={message.isSeen ? "#38bdf8" : "#a5adc3"}
                     />
