@@ -301,9 +301,6 @@ const ChatSection = () => {
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (newMessage.trim() && !sending) {
-        handleSendMessage(e);
-      }
     }
   };
 
@@ -535,16 +532,16 @@ const ChatSection = () => {
           onSubmit={handleSendMessage}
           className="flex flex-1 items-center h-[inherit] "
         >
-          <input
-            type="text"
+          <textarea
             value={newMessage}
             onChange={handleTypingInputChange}
             onKeyDown={handleInputKeyDown}
             onBlur={emitStopTyping}
             placeholder="Type a message"
-            disabled={sending} // 🚫 disable while sending
+            disabled={sending}
+            rows={1}
             enterKeyHint="enter"
-            className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-slate-900/90 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 mx-2 shadow"
+            className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-slate-900/90 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 mx-2 shadow resize-none overflow-y-auto max-h-32"
           />
 
           <button
