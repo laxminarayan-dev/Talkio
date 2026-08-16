@@ -8,13 +8,17 @@ const MessageBubble = React.memo(
   ({ message, sendingMessages, setReplyMessage, onReactToMessage }) => {
     const [isSwipedRight, setIsSwipedRight] = useState(false);
     const [isSwipedLeft, setIsSwipedLeft] = useState(false);
-    const lastTapRef = useRef(null);
+    const lastTapRef = useRef(0);
+    const DOUBLE_TAP_WINDOW = 350;
 
-    const handleDoubleTap = () => {
+    const handleTapToReact = () => {
       const now = Date.now();
-      if (lastTapRef.current && now - lastTapRef.current < 300) {
+      if (lastTapRef.current && now - lastTapRef.current <= DOUBLE_TAP_WINDOW) {
         onReactToMessage?.(message._id);
+        lastTapRef.current = 0;
+        return;
       }
+
       lastTapRef.current = now;
     };
 
@@ -43,9 +47,8 @@ const MessageBubble = React.memo(
     return (
       <div
         {...swipeHandler}
-        onClick={handleDoubleTap}
-        onTouchEnd={handleDoubleTap}
-        className={`flex  align-bottom mb-2 ${
+        onPointerUp={handleTapToReact}
+        className={`flex  align-bottom mb-5 ${
           message.sender === Cookies.get("token")
             ? "justify-end"
             : "justify-start"
@@ -56,7 +59,7 @@ const MessageBubble = React.memo(
         <div
           className={`relative flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
             message.sender === Cookies.get("token")
-              ? "bg-slate-100 text-slate-900 rounded-br-none shadow-xl"
+              ? "bg-blue-700 text-white rounded-br-none shadow-xl"
               : "bg-slate-800 border border-slate-700 shadow-xl text-slate-200 rounded-bl-none"
           }`}
         >
@@ -91,11 +94,6 @@ const MessageBubble = React.memo(
             >
               {message.content}
             </p>
-            {message.reaction && (
-              <div className="absolute -bottom-2 right-3 text-lg leading-none select-none">
-                {message.reaction}
-              </div>
-            )}
             <div className="text-[10px] flex items-center gap-1 min-w-0">
               {sendingMessages.includes(message._id) ? (
                 message?.error ? (
@@ -116,6 +114,15 @@ const MessageBubble = React.memo(
               )}
             </div>
           </div>
+          {message.reaction && (
+            <div
+              className={`absolute -bottom-5 ${
+                message.sender === Cookies.get("token") ? "right-2" : "left-2"
+              } bg-slate-900 border border-slate-700 rounded-full px-1 py-1.5 text-sm leading-none shadow-md select-none`}
+            >
+              {message.reaction}
+            </div>
+          )}
         </div>
       </div>
     );
