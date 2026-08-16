@@ -9,7 +9,7 @@ const getToken = () => Cookies.get("token");
 const getUsername = () => Cookies.get("username");
 
 export const useSocket = () => {
-    const { setConversations } = useContext(ChatContext);
+    const { setConversations, setChatBackgroundForConversation } = useContext(ChatContext);
     const { loadConversations } = useConversations();
     const [connection, setConnection] = useState(false);
 
@@ -135,6 +135,23 @@ export const useSocket = () => {
         [setConversations]
     );
 
+    // ✅ Handler: shared chat background updated
+    const handleChatBackgroundUpdated = useCallback(
+        (payload) => {
+            const from = String(payload?.from || "");
+            const withUserId = String(payload?.withUserId || "");
+            const backgroundUrl = String(payload?.backgroundUrl || "");
+            const token = String(getToken() || "");
+
+            // For receiver, map is current sender; for sender, map is withUserId.
+            const targetUserId = from === token ? withUserId : from;
+            if (!targetUserId) return;
+
+            setChatBackgroundForConversation(targetUserId, backgroundUrl);
+        },
+        [setChatBackgroundForConversation]
+    );
+
     // ✅ Setup and cleanup socket listeners
     useEffect(() => {
         const token = getToken();
@@ -152,6 +169,7 @@ export const useSocket = () => {
         socket.on("someone-offline", handleSomeoneOffline);
         socket.on("messagesSeenAck", handleMessageSeenAck);
         socket.on("typing", handleTyping);
+        socket.on("chat-background-updated", handleChatBackgroundUpdated);
 
         return () => {
             socket.off("connect", handleConnect);
@@ -161,6 +179,7 @@ export const useSocket = () => {
             socket.off("someone-offline", handleSomeoneOffline);
             socket.off("messagesSeenAck", handleMessageSeenAck);
             socket.off("typing", handleTyping);
+            socket.off("chat-background-updated", handleChatBackgroundUpdated);
         };
     }, [
         handleConnect,
@@ -170,6 +189,7 @@ export const useSocket = () => {
         handleSomeoneOffline,
         handleMessageSeenAck,
         handleTyping,
+        handleChatBackgroundUpdated,
     ]);
 
     return { connection };

@@ -1,7 +1,11 @@
 const { Server } = require("socket.io");
 const User = require("../models/User")
+const ConversationSetting = require("../models/ConversationSetting")
 const dotenv = require('dotenv');
 dotenv.config();
+
+const buildParticipantsKey = (userA, userB) =>
+    [String(userA), String(userB)].sort().join("_");
 
 const start_socket_server = (server, cache) => {
     const Message = require("../models/Message")
@@ -75,6 +79,43 @@ const start_socket_server = (server, cache) => {
                     from: String(socket.userId),
                     isTyping: Boolean(isTyping),
                 });
+            }
+        });
+
+        socket.on("chat-background-update", async ({ to, backgroundUrl }) => {
+            try {
+                if (!to) return;
+                const normalizedBackgroundUrl = String(backgroundUrl || "").trim();
+                const participantsKey = buildParticipantsKey(socket.userId, to);
+
+                await ConversationSetting.findOneAndUpdate(
+                    { participantsKey },
+                    {
+                        participants: [socket.userId, to],
+                        participantsKey,
+                        backgroundUrl: normalizedBackgroundUrl,
+                        updatedBy: socket.userId,
+                    },
+                    { upsert: true, new: true }
+                );
+
+                const payload = {
+                    from: String(socket.userId),
+                    withUserId: String(to),
+                    backgroundUrl: normalizedBackgroundUrl,
+                };
+
+                const receiverSocket = connectedUsers.get(String(to));
+                const senderSocket = connectedUsers.get(String(socket.userId));
+
+                if (receiverSocket) {
+                    receiverSocket.emit("chat-background-updated", payload);
+                }
+                if (senderSocket) {
+                    senderSocket.emit("chat-background-updated", payload);
+                }
+            } catch (error) {
+                console.log("chat-background-update error", error);
             }
         });
 

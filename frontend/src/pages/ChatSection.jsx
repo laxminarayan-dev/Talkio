@@ -5,7 +5,10 @@ import { LuMessageSquareText } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import socket from "../store/socket";
-import { ChatContext } from "../store/ChatContext";
+import {
+  ChatContext,
+  DEFAULT_CHAT_BACKGROUND,
+} from "../store/ChatContext";
 import MessageBubble from "../components/MessageBubble";
 import { isMobile, isTablet, isDesktop } from "react-device-detect";
 import { getDateLabel, isSameDay } from "../utils/time";
@@ -13,7 +16,12 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 const ChatSection = () => {
   const navigate = useNavigate();
-  const { conversations, setConversations } = useContext(ChatContext);
+  const {
+    conversations,
+    setConversations,
+    getChatBackground,
+    setChatBackgroundForConversation,
+  } = useContext(ChatContext);
   const [loading, setLoading] = useState(false);
   const { userId } = useParams();
   const [receiver, setReceiver] = useState({
@@ -42,6 +50,31 @@ const ChatSection = () => {
       navigate("/");
     }
   }, []);
+
+  useEffect(() => {
+    const loadConversationBackground = async () => {
+      if (!token || !userId) return;
+
+      try {
+        const res = await axios.post(
+          `${backend_url}/api/messages/conversation-background/get`,
+          {
+            userId: token,
+            withUserId: userId,
+          },
+        );
+
+        const incomingBackground = String(res.data?.backgroundUrl || "").trim();
+        if (incomingBackground) {
+          setChatBackgroundForConversation(userId, incomingBackground);
+        }
+      } catch (error) {
+        console.error("Error loading conversation background", error);
+      }
+    };
+
+    loadConversationBackground();
+  }, [token, userId, setChatBackgroundForConversation]);
 
   const fetchUserDetail = async () => {
     setLoading(true);
@@ -264,7 +297,7 @@ const ChatSection = () => {
     <div
       className="md:w-[calc(100vw-24rem)] md:left-96 fixed inset-0 flex flex-col bg-slate-950 bottom-0 overflow-y-"
       style={{
-        backgroundImage: `url('/kukki-bg.png')`,
+        backgroundImage: `url('${getChatBackground(userId) || DEFAULT_CHAT_BACKGROUND}')`,
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",

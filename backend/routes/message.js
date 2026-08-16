@@ -2,7 +2,11 @@ const express = require("express");
 const route = express.Router()
 const cache = require("../onStart/cache")
 const Message = require("../models/Message")
+const ConversationSetting = require("../models/ConversationSetting")
 const mongoose = require("mongoose")
+
+const buildParticipantsKey = (userA, userB) =>
+    [String(userA), String(userB)].sort().join("_");
 
 route.post("/all", async (req, res) => {
     const limit = 50;
@@ -232,6 +236,25 @@ route.post("/allConversations", async (req, res) => {
     } catch (error) {
         console.error("Error fetching conversations:", error);
         res.status(500).json({ message: "Server error" });
+    }
+});
+
+route.post("/conversation-background/get", async (req, res) => {
+    try {
+        const { userId, withUserId } = req.body;
+        if (!userId || !withUserId) {
+            return res.status(400).json({ message: "userId and withUserId are required" });
+        }
+
+        const participantsKey = buildParticipantsKey(userId, withUserId);
+        const setting = await ConversationSetting.findOne({ participantsKey }).lean();
+
+        return res.status(200).json({
+            backgroundUrl: setting?.backgroundUrl || "",
+        });
+    } catch (error) {
+        console.error("Error fetching conversation background:", error);
+        return res.status(500).json({ message: "Server error" });
     }
 });
 
