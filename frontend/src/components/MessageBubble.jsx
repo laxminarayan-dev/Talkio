@@ -89,7 +89,7 @@ const MessageBubble = React.memo(
             }`}
           >
             <p
-              className="min-w-0 break-all whitespace-pre-wrap"
+              className="min-w-[calc(100%-3rem)] break-all whitespace-pre-wrap max-w-[90%] "
               style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
             >
               {message.content}
