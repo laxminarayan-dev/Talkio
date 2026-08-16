@@ -67,6 +67,14 @@ const start_socket_server = (server, cache) => {
             }
         });
 
+        // Typing indicator relay between two users
+        socket.on("typing", ({ to, from, isTyping }) => {
+            const receiverSocket = connectedUsers.get(to);
+            if (receiverSocket) {
+                receiverSocket.emit("typing", { from, isTyping });
+            }
+        });
+
         socket.on("messagesSeen", async ({ senderId, receiverId, seenAt }) => {
             // tell sender that their message has been seen
             console.log("message seen emit");
@@ -86,7 +94,7 @@ const start_socket_server = (server, cache) => {
 
         // Handle disconnect and notify others with stored user info
         socket.on("disconnect", () => {
-            connectedUsers.delete(socket.id);
+            connectedUsers.delete(socket.userId);
 
             const user = cache.get(`user_${socket.userId}`)
             cache.set(`user_${user._id.toString()}`, { ...user, isOnline: false });

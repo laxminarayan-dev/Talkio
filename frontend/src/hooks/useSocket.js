@@ -46,6 +46,7 @@ export const useSocket = () => {
                                 messages: [...conv.messages, message],
                                 lastMessage: message,
                                 lastMessageAt: message.createdAt || new Date().toISOString(),
+                                isTyping: false,
                             }
                             : conv
                     );
@@ -69,6 +70,7 @@ export const useSocket = () => {
                     lastMessage: message,
                     lastMessageAt: message.createdAt || new Date().toISOString(),
                     isOnline: message.sender === token ? toStatus : fromStatus,
+                    isTyping: false,
                 };
 
                 return [newConversation, ...prev];
@@ -119,6 +121,18 @@ export const useSocket = () => {
         [setConversations]
     );
 
+    // ✅ Handler: typing status from another user
+    const handleTyping = useCallback(
+        ({ from, isTyping }) => {
+            setConversations((prev) =>
+                prev.map((conv) =>
+                    conv.withUser === from ? { ...conv, isTyping: Boolean(isTyping) } : conv
+                )
+            );
+        },
+        [setConversations]
+    );
+
     // ✅ Setup and cleanup socket listeners
     useEffect(() => {
         const token = getToken();
@@ -135,6 +149,7 @@ export const useSocket = () => {
         socket.on("someone-online", handleSomeoneOnline);
         socket.on("someone-offline", handleSomeoneOffline);
         socket.on("messagesSeenAck", handleMessageSeenAck);
+        socket.on("typing", handleTyping);
 
         return () => {
             socket.off("connect", handleConnect);
@@ -143,6 +158,7 @@ export const useSocket = () => {
             socket.off("someone-online", handleSomeoneOnline);
             socket.off("someone-offline", handleSomeoneOffline);
             socket.off("messagesSeenAck", handleMessageSeenAck);
+            socket.off("typing", handleTyping);
         };
     }, [
         handleConnect,
@@ -151,6 +167,7 @@ export const useSocket = () => {
         handleSomeoneOnline,
         handleSomeoneOffline,
         handleMessageSeenAck,
+        handleTyping,
     ]);
 
     return { connection };

@@ -221,6 +221,12 @@ const Root = () => {
                         if (!msg.isSeen) unseenCount++;
                       }
 
+                      if (conv.isTyping) {
+                        return (
+                          <p className="text-sm text-emerald-400 truncate">typing...</p>
+                        );
+                      }
+
                       return unseenCount > 0 ? (
                         <span className=" text-green-500 rounded-full h-5 w-fit flex items-center justify-center text-xs font-semibold">
                           {unseenCount > 4

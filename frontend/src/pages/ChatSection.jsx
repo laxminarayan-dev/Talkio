@@ -28,6 +28,9 @@ const ChatSection = () => {
   const [replyMessage, setReplyMessage] = useState(null);
   const [sendingMessages, setSendingMessages] = useState([]);
   const [sending, setSending] = useState(false);
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const isTypingRef = useRef(false);
+  const typingStopTimerRef = useRef(null);
   const token = Cookies.get("token");
 
   // const isTouchDevice =
@@ -120,9 +123,83 @@ const ChatSection = () => {
     );
   }, [messages]);
 
+  const emitStopTyping = () => {
+    if (!isTypingRef.current) return;
+    socket.emit("typing", {
+      to: userId,
+      from: token,
+      isTyping: false,
+    });
+    isTypingRef.current = false;
+  };
+
+  const handleTypingInputChange = (e) => {
+    const value = e.target.value;
+    setNewMessage(value);
+
+    if (!userId || !token) return;
+
+    if (value.trim().length > 0) {
+      if (!isTypingRef.current) {
+        socket.emit("typing", {
+          to: userId,
+          from: token,
+          isTyping: true,
+        });
+        isTypingRef.current = true;
+      }
+
+      if (typingStopTimerRef.current) {
+        clearTimeout(typingStopTimerRef.current);
+      }
+
+      typingStopTimerRef.current = setTimeout(() => {
+        emitStopTyping();
+      }, 1200);
+      return;
+    }
+
+    if (typingStopTimerRef.current) {
+      clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+    }
+
+    emitStopTyping();
+  };
+
+  useEffect(() => {
+    const handleTyping = ({ from, isTyping }) => {
+      if (from === userId) {
+        setIsOtherUserTyping(Boolean(isTyping));
+      }
+    };
+
+    socket.on("typing", handleTyping);
+
+    return () => {
+      socket.off("typing", handleTyping);
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    return () => {
+      if (typingStopTimerRef.current) {
+        clearTimeout(typingStopTimerRef.current);
+      }
+      emitStopTyping();
+    };
+  }, [userId, token]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === "") return;
+
+    if (typingStopTimerRef.current) {
+      clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+    }
+    emitStopTyping();
+
     setSending(true); // 🚫 disable input & button
     const tempId = Date.now(); // temporary unique ID
     const tempMessage = {
@@ -208,7 +285,13 @@ const ChatSection = () => {
           <h2 className="font-semibold text-slate-100">
             {receiver.name || "User"}
           </h2>
-          <p className={`text-xs text-slate-400`}>@{receiver.username}</p>
+          <p
+            className={`text-xs ${
+              isOtherUserTyping ? "text-emerald-400" : "text-slate-400"
+            }`}
+          >
+            {isOtherUserTyping ? "typing..." : `@${receiver.username}`}
+          </p>
         </div>
         <div className="ml-auto flex space-x-4">
           <button className="p-2 rounded-full hover:bg-slate-800">
@@ -321,7 +404,8 @@ const ChatSection = () => {
           <input
             type="text"
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={handleTypingInputChange}
+            onBlur={emitStopTyping}
             placeholder="Type a message"
             disabled={sending} // 🚫 disable while sending
             className="flex-1 focus:ring-0 focus:outline-none px-4 py-2 rounded-full bg-slate-900/90 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 mx-2 shadow"
