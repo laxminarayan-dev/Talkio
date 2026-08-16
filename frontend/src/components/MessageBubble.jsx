@@ -92,7 +92,7 @@ const MessageBubble = React.memo(
               className={`${
                 message.sender === Cookies.get("token")
                   ? "min-w-[calc(100%-4rem)]"
-                  : "min-w-[calc(100%-3rem)]"
+                  : "min-w-[calc(100%-2.8rem)]"
               } break-all whitespace-pre-wrap max-w-[90%] `}
               style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
             >
