@@ -298,14 +298,10 @@ const ChatSection = () => {
     }
   };
 
-  const handleInputKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleSendMessage = async (e) => {
+    if (e) {
       e.preventDefault();
     }
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
     if (newMessage.trim() === "") return;
 
     if (typingStopTimerRef.current) {
@@ -535,7 +531,6 @@ const ChatSection = () => {
           <textarea
             value={newMessage}
             onChange={handleTypingInputChange}
-            onKeyDown={handleInputKeyDown}
             onBlur={emitStopTyping}
             placeholder="Type a message"
             disabled={sending}
@@ -545,7 +540,8 @@ const ChatSection = () => {
           />
 
           <button
-            type="submit"
+            type="button"
+            onClick={handleSendMessage}
             disabled={sending || !newMessage.trim()}
             className={`p-2 rounded-full shadow ${
               newMessage.trim()
