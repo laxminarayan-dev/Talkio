@@ -89,7 +89,11 @@ const MessageBubble = React.memo(
             }`}
           >
             <p
-              className="min-w-[calc(100%-4rem)] break-all whitespace-pre-wrap max-w-[90%] "
+              className={`${
+                message.sender === Cookies.get("token")
+                  ? "min-w-[calc(100%-4rem)]"
+                  : "min-w-[calc(100%-3rem)]"
+              } break-all whitespace-pre-wrap max-w-[90%] `}
               style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
             >
               {message.content}
