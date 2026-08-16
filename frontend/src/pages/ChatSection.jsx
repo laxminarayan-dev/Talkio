@@ -251,40 +251,51 @@ const ChatSection = () => {
     };
   }, [userId, token]);
 
-  const handleReactToMessage = (messageId) => {
+  const handleReactToMessage = async (messageId) => {
     const currentMessage = messages.find((msg) => msg._id === messageId);
     const nextReaction = currentMessage?.reaction === "❤️" ? null : "❤️";
 
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg._id === messageId
-          ? {
-              ...msg,
-              reaction: nextReaction,
-            }
-          : msg,
-      ),
-    );
+    try {
+      const res = await axios.post(`${backend_url}/api/messages/toggle-reaction`, {
+        messageId,
+        userId: token,
+        reaction: nextReaction,
+      });
 
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.withUser === userId
-          ? {
-              ...conv,
-              messages: conv.messages.map((msg) =>
-                msg._id === messageId ? { ...msg, reaction: nextReaction } : msg,
-              ),
-            }
-          : conv,
-      ),
-    );
+      const updatedMessage = res.data;
 
-    socket.emit("message-reacted", {
-      to: userId,
-      from: token,
-      messageId,
-      reaction: nextReaction,
-    });
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId
+            ? { ...msg, reaction: updatedMessage.reaction }
+            : msg,
+        ),
+      );
+
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.withUser === userId
+            ? {
+                ...conv,
+                messages: conv.messages.map((msg) =>
+                  msg._id === messageId
+                    ? { ...msg, reaction: updatedMessage.reaction }
+                    : msg,
+                ),
+              }
+            : conv,
+        ),
+      );
+
+      socket.emit("message-reacted", {
+        to: userId,
+        from: token,
+        messageId,
+        reaction: updatedMessage.reaction,
+      });
+    } catch (error) {
+      console.error("Failed to update reaction", error);
+    }
   };
 
   const handleSendMessage = async (e) => {
