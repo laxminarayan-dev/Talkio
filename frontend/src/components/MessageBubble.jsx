@@ -1,13 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useSwipeable } from "react-swipeable";
 import { IoCheckmarkDone } from "react-icons/io5";
 import { getTime } from "../utils/time";
 import Cookies from "js-cookie";
 
 const MessageBubble = React.memo(
-  ({ message, sendingMessages, setReplyMessage }) => {
+  ({ message, sendingMessages, setReplyMessage, onReactToMessage }) => {
     const [isSwipedRight, setIsSwipedRight] = useState(false);
     const [isSwipedLeft, setIsSwipedLeft] = useState(false);
+    const lastTapRef = useRef(null);
+
+    const handleDoubleTap = () => {
+      const now = Date.now();
+      if (lastTapRef.current && now - lastTapRef.current < 300) {
+        onReactToMessage?.(message._id);
+      }
+      lastTapRef.current = now;
+    };
 
     const swipeHandler = useSwipeable(
       message["sender"] === Cookies.get("token")
@@ -34,6 +43,8 @@ const MessageBubble = React.memo(
     return (
       <div
         {...swipeHandler}
+        onClick={handleDoubleTap}
+        onTouchEnd={handleDoubleTap}
         className={`flex  align-bottom mb-2 ${
           message.sender === Cookies.get("token")
             ? "justify-end"
@@ -43,7 +54,7 @@ const MessageBubble = React.memo(
       ${isSwipedRight ? "translate-x-12" : "translate-x-0"}`}
       >
         <div
-          className={`flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
+          className={`relative flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
             message.sender === Cookies.get("token")
               ? "bg-slate-100 text-slate-900 rounded-br-none shadow-xl"
               : "bg-slate-800 border border-slate-700 shadow-xl text-slate-200 rounded-bl-none"
@@ -70,12 +81,22 @@ const MessageBubble = React.memo(
             </div>
           )}
           <div
-            className={`flex items-end gap-2 w-full px-2 ${
+            className={`flex items-end gap-2 w-full min-w-0 px-2 ${
               message.sender === Cookies.get("token") && "justify-end"
             }`}
           >
-            <p>{message.content}</p>
-            <div className="text-[10px] flex items-center gap-1">
+            <p
+              className="min-w-0 break-all whitespace-pre-wrap"
+              style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+            >
+              {message.content}
+            </p>
+            {message.reaction && (
+              <div className="absolute -bottom-2 right-3 text-lg leading-none select-none">
+                {message.reaction}
+              </div>
+            )}
+            <div className="text-[10px] flex items-center gap-1 min-w-0">
               {sendingMessages.includes(message._id) ? (
                 message?.error ? (
                   <span className="text-red-500 text-[10px]">Failed</span>

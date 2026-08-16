@@ -212,12 +212,35 @@ const ChatSection = () => {
       }
     };
 
+    const handleMessageReacted = ({ messageId, reaction }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId ? { ...msg, reaction } : msg,
+        ),
+      );
+
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.withUser === userId
+            ? {
+                ...conv,
+                messages: conv.messages.map((msg) =>
+                  msg._id === messageId ? { ...msg, reaction } : msg,
+                ),
+              }
+            : conv,
+        ),
+      );
+    };
+
     socket.on("typing", handleTyping);
+    socket.on("message-reacted", handleMessageReacted);
 
     return () => {
       socket.off("typing", handleTyping);
+      socket.off("message-reacted", handleMessageReacted);
     };
-  }, [userId]);
+  }, [userId, setConversations]);
 
   useEffect(() => {
     return () => {
@@ -227,6 +250,42 @@ const ChatSection = () => {
       emitStopTyping();
     };
   }, [userId, token]);
+
+  const handleReactToMessage = (messageId) => {
+    const currentMessage = messages.find((msg) => msg._id === messageId);
+    const nextReaction = currentMessage?.reaction === "❤️" ? null : "❤️";
+
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === messageId
+          ? {
+              ...msg,
+              reaction: nextReaction,
+            }
+          : msg,
+      ),
+    );
+
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.withUser === userId
+          ? {
+              ...conv,
+              messages: conv.messages.map((msg) =>
+                msg._id === messageId ? { ...msg, reaction: nextReaction } : msg,
+              ),
+            }
+          : conv,
+      ),
+    );
+
+    socket.emit("message-reacted", {
+      to: userId,
+      from: token,
+      messageId,
+      reaction: nextReaction,
+    });
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -387,6 +446,7 @@ const ChatSection = () => {
                   ref={index === 0 ? messagesEndRef : null}
                   setReplyMessage={setReplyMessage}
                   sendingMessages={sendingMessages}
+                  onReactToMessage={handleReactToMessage}
                 />
               </div>
             );

@@ -50,6 +50,11 @@ const messageSchema = new mongoose.Schema(
             default: null,
         },
 
+        reaction: {
+            type: String,
+            default: null,
+        },
+
         type: {
             type: String,
             enum: ["text", "image", "file"],

@@ -82,6 +82,19 @@ const start_socket_server = (server, cache) => {
             }
         });
 
+        socket.on("message-reacted", ({ to, from, messageId, reaction }) => {
+            const receiverSocket = connectedUsers.get(String(to));
+            const senderSocket = connectedUsers.get(String(from));
+            const payload = { messageId, reaction, from: String(from), to: String(to) };
+
+            if (receiverSocket) {
+                receiverSocket.emit("message-reacted", payload);
+            }
+            if (senderSocket) {
+                senderSocket.emit("message-reacted", payload);
+            }
+        });
+
         socket.on("chat-background-update", async ({ to, backgroundUrl }) => {
             try {
                 if (!to) return;
