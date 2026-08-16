@@ -142,7 +142,7 @@ const ChatSection = () => {
     if (value.trim().length > 0) {
       if (!isTypingRef.current) {
         socket.emit("typing", {
-          to: userId,
+          to: String(userId),
           from: token,
           isTyping: true,
         });
@@ -168,9 +168,14 @@ const ChatSection = () => {
   };
 
   useEffect(() => {
-    const handleTyping = ({ from, isTyping }) => {
-      if (from === userId) {
-        setIsOtherUserTyping(Boolean(isTyping));
+    const handleTyping = (payload) => {
+      const from = String(
+        payload?.from ?? payload?.senderId ?? payload?.userId ?? "",
+      );
+      const typingValue = Boolean(payload?.isTyping ?? payload?.typing);
+
+      if (from === String(userId)) {
+        setIsOtherUserTyping(typingValue);
       }
     };
 
@@ -391,6 +396,22 @@ const ChatSection = () => {
             >
               <IoClose size={20} />
             </button>
+          </div>
+        </div>
+      )}
+
+      {isOtherUserTyping && (
+        <div className="px-6 pb-1 md:w-[calc(100vw-24rem)]">
+          <div className="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-200 text-xs px-3 py-2 rounded-2xl">
+            <span className="text-emerald-400 font-medium">
+              {receiver.name || "User"}
+            </span>
+            <span>is typing</span>
+            <span className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:120ms]"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:240ms]"></span>
+            </span>
           </div>
         </div>
       )}

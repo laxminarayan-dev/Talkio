@@ -68,10 +68,13 @@ const start_socket_server = (server, cache) => {
         });
 
         // Typing indicator relay between two users
-        socket.on("typing", ({ to, from, isTyping }) => {
-            const receiverSocket = connectedUsers.get(to);
+        socket.on("typing", ({ to, isTyping }) => {
+            const receiverSocket = connectedUsers.get(String(to));
             if (receiverSocket) {
-                receiverSocket.emit("typing", { from, isTyping });
+                receiverSocket.emit("typing", {
+                    from: String(socket.userId),
+                    isTyping: Boolean(isTyping),
+                });
             }
         });
 

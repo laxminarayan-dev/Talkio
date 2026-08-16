@@ -123,10 +123,12 @@ export const useSocket = () => {
 
     // ✅ Handler: typing status from another user
     const handleTyping = useCallback(
-        ({ from, isTyping }) => {
+        (payload) => {
+            const from = String(payload?.from ?? payload?.senderId ?? payload?.userId ?? "");
+            const typingValue = Boolean(payload?.isTyping ?? payload?.typing);
             setConversations((prev) =>
                 prev.map((conv) =>
-                    conv.withUser === from ? { ...conv, isTyping: Boolean(isTyping) } : conv
+                    String(conv.withUser) === from ? { ...conv, isTyping: typingValue } : conv
                 )
             );
         },
