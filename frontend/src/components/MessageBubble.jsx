@@ -59,7 +59,7 @@ const MessageBubble = React.memo(
         <div
           className={`relative flex flex-col justify-end gap-2 min-w-26 max-w-sm md:max-w-md p-1 rounded-xl ${
             message.sender === Cookies.get("token")
-              ? "bg-[#1a1a1a] text-white rounded-br-none shadow-xl"
+              ? "bg-[#1a1a1a] text-white rounded-br-none shadow-xl pl-2"
               : "bg-slate-800 border border-slate-700 shadow-xl text-slate-200 rounded-bl-none"
           }`}
         >
